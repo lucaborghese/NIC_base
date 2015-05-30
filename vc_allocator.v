@@ -6,63 +6,87 @@
 //						buffer and assign the virtual channel to a packet
 //
 //////////////////////////////////////////////////////////////////////////////////
-`include "NIC-defines.v"
+`include "va_vn_N_to_1.v"
 
 module vc_allocator
 	#(
-	parameter	N_OF_REQUEST	=	3,
-	parameter	N_BITS_VNET_ID	=	2,
-	parameter	N_BITS_VC_ID	=	6
+	parameter	N_OF_REQUEST			=	6,
+	parameter	N_BITS_N_OF_REQUEST	=	3,
+	parameter	N_OF_VN					=	3,
+	parameter	N_OF_VC					=	2,
+	parameter	N_TOT_OF_VC				=	6
 	)
 	(
-//	input	clk,
-//	input	rst,
+	input	clk,
+	input	rst,
 
 	//request
-	input				[N_OF_REQUEST-1:0]						r_va_i,
-	input				[N_OF_REQUEST*N_BITS_VNET_ID-1:0]	vnet_of_the_request_i,
-	output	reg	[N_OF_REQUEST-1:0]						g_va_o,
-	output	reg	[N_OF_REQUEST*N_BITS_VC_ID-1:0]		g_vc_id_o,//one-hot encoding for every request
-
-	//vc state of the router from free_signal
-	input				[`N_OF_VC*`N_OF_VN-1:0]					free_signal_i,//signal from the router
+	input				[N_OF_REQUEST-1:0]						r_va_i,//if r_va_i[i] is high, the i-th fifo out buffer require VA stage
+	input				[N_OF_REQUEST*N_TOT_OF_VC-1:0]		r_vc_requested_i,//vc that the fifo_out_buffer requires
+	output	wire	[N_OF_REQUEST-1:0]						g_va_o,
+	output	wire	[N_OF_REQUEST*N_TOT_OF_VC-1:0]		g_vc_id_o,//one-hot encoding for every request
 
 	//state of the fifo pointer(one for vc*vn)
-	input				[`N_OF_VC*`N_OF_VN-1:0]					fifo_pointer_state_i//signal from the fifo_nic2noc module, if high the i-th bit means that the i-th vc is busy
+	input				[N_TOT_OF_VC-1:0]							fifo_pointer_state_i//signal from the fifo_nic2noc module, if high the i-th bit means that the i-th vc is busy
 	);
 
 	genvar i;
+	genvar j;
 
-	wire	[N_BITS_VNET_ID-1:0]	vnet_of_the_request[N_OF_REQUEST-1:0];
+	wire [N_TOT_OF_VC-1:0] free_vc;
+	assign free_vc = ~fifo_pointer_state_i;
+
+	wire [N_OF_REQUEST-1:0]	vn_required[N_OF_VN-1:0];
 	generate
-		for( i=0 ; i<N_OF_REQUEST ; i=i+1 ) begin : extraction_of_vnet_of_the_request
-			assign vnet_of_the_request[i] = vnet_of_the_request_i[(i+1)*N_BITS_VNET_ID-1:i*N_BITS_VNET_ID];
+		for( i=0 ; i<N_OF_VN ; i=i+1 ) begin : computation_vn_required
+			for( j=0 ; j<N_OF_REQUEST ; j=j+1 ) begin : internal_computation_vn_required
+				assign vn_required[i][j] = r_va_i[j] & r_vc_requested_i[j*N_TOT_OF_VC+i*N_OF_VC];
+			end//for(j)
+		end//for(i)
+	endgenerate
+
+	//generation of N_OF_VN virtual channel allocator
+	wire [N_OF_REQUEST-1:0] g_va_from_va_vn[N_OF_VN-1:0];
+	wire [N_OF_REQUEST*N_OF_VC-1:0] g_vc_from_va_vn[N_OF_VN-1:0];
+	generate
+		for( i=0 ; i<N_OF_VN ; i=i+1 ) begin : va_vn_generation
+			va_vn_N_to_1
+				#(
+				.N_OF_REQUEST(N_OF_REQUEST),
+				.N_BITS_N_OF_REQUEST(N_BITS_N_OF_REQUEST),
+				.N_OF_VC(N_OF_VC)
+				)
+				va_vn
+				(
+				.clk(clk),
+				.rst(rst),
+
+				.vc_free_i(free_vc[(i+1)*N_OF_VC-1:i*N_OF_VC]),
+				.r_va_vn_i(vn_required[i]),
+				.g_va_vn_o(g_va_from_va_vn[i]),
+				.g_vc_o(g_vc_from_va_vn[i])
+				);
 		end//for
 	endgenerate
 
-	//if high the i-th bit of this signal, in this cycle the i-th vc can be allocated to someone
-	reg	[`N_OF_VC*`N_OF_VN-1:0]	vc_free;
-	
-	integer k0;
-	integer k1;
-	reg	[N_BITS_VNET_ID-1:0]	vnet;
-	always @(*) begin
-		vnet = 0;
-		vc_free = (~fifo_pointer_state_i) & free_signal_i;
-		g_va_o = 0;
-		g_vc_id_o = 0;
-		for( k0=0 ; k0<N_OF_REQUEST ; k0=k0+1 ) begin//for every possible request
-			if(r_va_i[k0]) begin//the k0-th fifo_buffer mades a request
-				vnet = vnet_of_the_request[k0];
-				for( k1=0 ; k1<`N_OF_VC ; k1=k1+1 ) begin//check if there is a free vc in the requested vnet
-					if(!g_va_o[k0] && vc_free[vnet*`N_OF_VC+k1]) begin
-						vc_free[vnet*`N_OF_VC+k1] = 0;
-						g_va_o[k0] = 1;
-						g_vc_id_o[k0*N_BITS_VC_ID+vnet*`N_OF_VC+k1] = 1;
-					end
-				end//for
-			end//if(r_va_i[k0])
-		end//for
-	end//always
+	//computation of g_va_o from g_va_from_va_vn
+	wire [N_OF_VN-1:0] g_va_for_each_request[N_OF_REQUEST-1:0];
+	generate
+		for( i=0 ; i<N_OF_REQUEST ; i=i+1 ) begin : computation_g_va_for_each_request
+			for( j=0 ; j<N_OF_VN ; j=j+1 ) begin : internal_computation_g_va_for_each_request
+				assign g_va_for_each_request[i][j] = g_va_from_va_vn[j][i];
+			end//for(j)
+			assign g_va_o[i] = (g_va_for_each_request[i]) ? 1 : 0;
+		end//for(i)
+	endgenerate
+
+	//computation of g_vc_id_o from g_vc_from_va_vn
+	generate
+		for( i=0 ; i<N_OF_REQUEST ; i=i+1 ) begin : computation_g_vc_id_o
+			for( j=0 ; j<N_OF_VN ; j=j+1 ) begin : internal_computation_g_vc_id_o
+				assign g_vc_id_o[i*N_TOT_OF_VC+(j+1)*N_OF_VC-1:i*N_TOT_OF_VC+j*N_OF_VC] = g_vc_from_va_vn[j][(i+1)*N_OF_VC-1:i*N_OF_VC];
+			end//for(j)
+		end//for(i)
+	endgenerate
 
 endmodule//vc_allocator
