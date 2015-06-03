@@ -40,7 +40,7 @@ module vc_allocator
 	generate
 		for( i=0 ; i<N_OF_VN ; i=i+1 ) begin : computation_vn_required
 			for( j=0 ; j<N_OF_REQUEST ; j=j+1 ) begin : internal_computation_vn_required
-				assign vn_required[i][j] = r_va_i[j] & r_vc_requested_i[j*N_TOT_OF_VC+i*N_OF_VC];
+				assign vn_required[i][j] = r_va_i[j] & r_vc_requested_i[j*N_TOT_OF_VC+(i+1)*N_OF_VC-1:j*N_TOT_OF_VC+i*N_OF_VC]!=0;
 			end//for(j)
 		end//for(i)
 	endgenerate
