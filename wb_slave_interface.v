@@ -41,7 +41,7 @@ module wb_slave_interface
 
 	//vc_allocator side
 	output			[N_FIFO_OUT_BUFFER-1:0]							r_va_o,//one bit for each fifo_out_buffer, if the i-th bit is high it requires VA stage
-	output			[N_FIFO_OUT_BUFFER*N_BITS_VNET_ID-1:0]		vnet_of_the_request_o,//vnet of the packet stored in each fifo_out_buffer
+	output			[N_FIFO_OUT_BUFFER*N_TOT_OF_VC-1:0]			r_vc_requested_o,//vc requested
 	input				[N_FIFO_OUT_BUFFER-1:0]							g_va_i,//grant from VA, one for each fifo_out_buffer
 	input				[N_FIFO_OUT_BUFFER*N_TOT_OF_VC-1:0]			g_va_vc_id_i,//signal attached at g_va_i, if g_va_i[i] is high the allocated vc is passed via one-hot encoding in g_va_vc_id_i[(i+1)*N_TOT_OF_VC-1:i*N_TOT_OF_VC])
 
@@ -178,7 +178,7 @@ module wb_slave_interface
 	end//always
 	//end FSM
 
-	//message_buffer instantietion
+	//message_buffer
 	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	pkt_from_message_buffer;
 	wire	[N_BITS_VNET_ID-1:0]							vnet_id_from_message_buffer;
 	message_buffer
@@ -212,6 +212,9 @@ module wb_slave_interface
 	//computation of every g_la_i for each fifo_out_buffer
 	wire	[N_FIFO_OUT_BUFFER-1:0] g_la_for_fifo_out_buffer;
 	assign g_la_for_fifo_out_buffer = (g_la_i) ? 1 << g_la_fifo_out_buffer_id_i : 0;
+
+	//collectin vnet_of_the_request
+	wire [N_BITS_VNET_ID-1:0] vnet_of_the_request[N_FIFO_OUT_BUFFER-1:0];
 
 	//collection of flit_o arriving from every fifo_out_buffer and selecting propagating the valid one
 	wire	[`FLIT_WIDTH-1:0]	flits_from_fifo_out_buffer[N_FIFO_OUT_BUFFER-1:0];
@@ -261,7 +264,7 @@ module wb_slave_interface
 				.is_valid_i(is_valid_for_fifo_out_buffer[i]),
 				//VA side
 				.r_va_o(r_va_o[i]),
-				.vnet_id_o(vnet_of_the_request_o[(i+1)*N_BITS_VNET_ID-1:i*N_BITS_VNET_ID]),
+				.vnet_id_o(vnet_of_the_request[i]),
 				.g_va_i(g_va_i[i]),
 				.vc_id_i(g_va_vc_id_i[(i+1)*N_TOT_OF_VC-1:i*N_TOT_OF_VC]),
 				//LA side
@@ -296,13 +299,13 @@ module wb_slave_interface
 		end//if(out_required)
 	end//always
 
-	//computation of release_pointer_o from release_pointer_from_fifo_out_buffer and vc_id_from_fifo_out_buffer
+	//computation of release_pointer_o(for fifo_nic2noc) from release_pointer_from_fifo_out_buffer and vc_id_from_fifo_out_buffer
 	integer k1;
 	always @(*) begin
 		release_pointer_o = 0;
 		for( k1=0; k1<N_FIFO_OUT_BUFFER ; k1=k1+1 ) begin
 			if(release_pointer_from_fifo_out_buffer[k1]) begin
-				release_pointer_o[vc_id_from_fifo_out_buffer[k1]] = 1;
+				release_pointer_o[ff1(vc_id_from_fifo_out_buffer[k1],N_TOT_OF_VC)] = 1;
 			end//if(release_pointer_from_fifo_out_buffer[k1])
 		end//for
 	end//always
@@ -325,17 +328,27 @@ module wb_slave_interface
 	endgenerate
 	integer k2;
 	integer k3;
+	integer k4;
 	always @(*) begin
+		k4 = 0;
 		g_fifo_pointer_o = 0;
 		for( k2=0 ; k2<N_TOT_OF_VC ; k2=k2+1 ) begin
 			g_fifo_out_buffer_id[k2] = 0;
 		end//for
 		for( k3=0 ; k3<N_FIFO_OUT_BUFFER ; k3=k3+1 ) begin
 			if(g_va_i[k3]) begin
-				g_fifo_pointer_o[g_va_vc_id[k3]] = 1;
-				g_fifo_out_buffer_id[g_va_vc_id[k3]] = k3;
+				k4 = ff1(g_va_vc_id[k3],N_TOT_OF_VC);
+				g_fifo_pointer_o[k4] = 1;
+				g_fifo_out_buffer_id[k4] = k3;
 			end
 		end//for
 	end//always
+
+	//computation of r_vc_requested_o from vnet_of_the_request
+	generate
+		for( i=0 ; i<N_FIFO_OUT_BUFFER ; i=i+1 ) begin : computation_r_vc_requested_o
+			assign r_vc_requested_o[(i+1)*N_TOT_OF_VC-1:i*N_TOT_OF_VC] = 1 << vnet_of_the_request[i]*`N_OF_VC;
+		end//for
+	endgenerate
 
 endmodule//wb_slave_interface
