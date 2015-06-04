@@ -44,6 +44,8 @@ module fifo_out_buffer
 	output																free_slot_o//high if this buffer is free
 	);
 
+	genvar i;
+
 	//control register
 	reg	[N_BITS_VNET_ID-1:0]	vnet_id_r;
 	reg	[N_BITS_VC_ID-1:0]	vc_id_r;
@@ -137,11 +139,15 @@ module fifo_out_buffer
 	assign is_last_flit = (flit_o[`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT || flit_o[`FLIT_TYPE_BITS]==`TAIL_FLIT) ? 1 : 0;
 
 	//computation of flit_o
+	wire [`FLIT_WIDTH-1:0] flits_from_buffer[`MAX_PACKET_LENGHT-1:0];
+	generate
+		for( i=0 ; i<`MAX_PACKET_LENGHT ; i=i+1 ) begin : flits_from_buffer_computation
+			assign flits_from_buffer[i] = flit_buffer_r[(i+1)*`FLIT_WIDTH-1:i*`FLIT_WIDTH];
+		end//for
+	endgenerate
 	integer k0;
 	always @(*) begin
-		for( k0=0 ; k0<`FLIT_WIDTH ; k0=k0+1 ) begin
-			flit_o[k0] = flit_buffer_r[transmitting_flit_pointer_r*`FLIT_WIDTH+k0];
-		end//for
+		flit_o = flits_from_buffer[transmitting_flit_pointer_r];
 	end//always
 
 	//FSM
