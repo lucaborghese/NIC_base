@@ -37,9 +37,9 @@ module testbench_wb_master_interface
 	//output table side
 	wire																query_o;//high if we are querying the table
 	wire																pending_transaction_executed_o;//high if the reply has been executed and we receive the ack
-	wire			[`BUS_ADDRESS_WIDTH-1:0]					query_sender_o;//local node that begin the transaction(PROBABLY NOT ALL THE BIT IN THE ADDRESS ARE USEFULL) 
-	wire			[`BUS_ADDRESS_WIDTH-1:0]					query_recipient_o;//remote node that generate the reply
-	wire			[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]	transaction_type_o;
+	wire			[`N_BIT_SRC_HEAD_FLIT-1:0]					query_sender_o;//local node that begin the transaction(PROBABLY NOT ALL THE BIT IN THE ADDRESS ARE USEFULL) 
+	wire			[`N_BIT_DEST_HEAD_FLIT-1:0]				query_recipient_o;//remote node that generate the reply
+	wire			[`N_BIT_CMD_HEAD_FLIT-1:0]					transaction_type_o;
 
 	//output queue side
 	wire														next_data_o;

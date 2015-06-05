@@ -34,10 +34,12 @@ module message_queue
 	input																	message_transmitted_i//if high the message pointed by head_pointer has been transmitted over the bus
 	);
 
+	genvar i;
+
 	//queue registers(FIFO)
 	reg	[`QUEUE_WIDTH-1:0]								valid_bit_r;//if the i-th bit is high head_queue_r[i] and data_queue_r[i] contains a message(at least there is the head_tail flit)
 	reg	[`FLIT_WIDTH-1:0]									head_queue_r[`QUEUE_WIDTH-1:0];
-	reg	[(`MAX_PACKET_LENGHT-1)*`FLIT_WIDTH-1:0]	data_queue_r[`QUEUE_WIDTH-1:0];
+	reg	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]		data_queue_r[`QUEUE_WIDTH-1:0];
 	reg	[(`MAX_PACKET_LENGHT-1)-1:0]					sel_r[`QUEUE_WIDTH-1:0];//if the i-th bit the i-th flit in data_queue_r[k] contains valid information
 	reg	[N_BITS_POINTER-1:0]								head_pointer_r;//next message that must be sent over WISHBONE
 	reg	[N_BITS_POINTER-1:0]								tail_pointer_r;//next free slot in queue
@@ -69,7 +71,7 @@ module message_queue
 		end else begin
 			if(g_pkt_to_msg_o) begin
 				head_queue_r[tail_pointer_r] <= in_link_i[`FLIT_WIDTH-1:0];//storing head/head_tail flit
-				data_queue_r[tail_pointer_r] <= in_link_i[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:`FLIT_WIDTH];//storing data flit
+				data_queue_r[tail_pointer_r] <= in_link_i[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0];//storing data flit
 				sel_r[tail_pointer_r] <= in_sel_i[`MAX_PACKET_LENGHT-1:1];
 				if(tail_pointer_r==`QUEUE_WIDTH-1) begin//update tail_pointer_r
 					tail_pointer_r <= 0;
@@ -147,56 +149,45 @@ module message_queue
 		end//else if(message_transmitted_i || retry_i)
 	end//always
 
-	//computation of data_o DA FINIRE
-	integer k0;
-	wire	[(`MAX_PACKET_LENGHT-1)*`FLIT_WIDTH-1:0]	current_message;
-	assign current_message = data_queue_r[head_pointer_r];
+	//computation of data_o
+	wire	[`BUS_DATA_WIDTH-1:0]	current_message[`MAX_BURST_LENGHT-1:0];
+	generate
+		for( i=0 ; i<`MAX_BURST_LENGHT ; i=i+1 ) begin : current_message_computation
+			assign current_message[i] = data_queue_r[head_pointer_r][(i+1)*`BUS_DATA_WIDTH-1:i*`BUS_DATA_WIDTH];
+		end//for
+	endgenerate
 	always @(*) begin
-		data_o = 0;
-		if(transaction_type_o) begin//if WRITE i had to transmit data
-			if(burst_lenght_o==1) begin//small message, the data must be taken from the head_queue flit
-//				data_o = head_queue_r[head_pointer_r][];
-			end else begin//big message, the information must be taken from the data_queue
-				for( k0=0 ; k0<`BUS_DATA_WIDTH ; k0=k0+1 ) begin
-					data_o[k0] = current_message[current_message_chunk_pointer_r*`BUS_DATA_WIDTH+k0];
-				end//for
-			end//else if(burst_lenght_o==1)
-		end//if(transaction_type_o)
+		data_o = current_message[current_message_chunk_pointer_r];
 	end//always
 
-	//computation of address_o FOR NOW FAKE BITS
-	assign address_o = 0;
+	//computation of address_o
+	assign address_o = head_queue_r[head_pointer_r][`HEAD_FLIT_ADDRESS_BITS];
 
 	//computation of sel_o DA FINIRE
-	integer k1;
 	always @(*) begin
 		sel_o = 0;
 		if(transaction_type_o) begin//if WRITE
 			if(burst_lenght_o==1) begin//small packet(only head_tail)
-				sel_o = 0;//ERROR sel_o must be set with the lenght of a small message write
+				sel_o = ~0;//ERROR sel_o must be set with the lenght of a small message write
 			end else begin
 				if(current_message_chunk_pointer_r<burst_lenght_o-1) begin
 					sel_o = ~0;
 				end else begin
-					sel_o = 0;//ERROR sel_o must be set with the remain one of the last WB transaction of a big message write
+					sel_o = ~0;//ERROR sel_o must be set with the remain one of the last WB transaction of a big message write
 				end
 			end
 		end else begin//if READ
-			if(current_message_chunk_pointer_r<burst_lenght_o-1) begin
-				sel_o = ~0;
-			end else begin
-				sel_o = 0;//ERROR sel_o must be set with the remain one of a read(probably like write)
-			end
+			sel_o = ~0;//ERROR sel_o must be set with the remain one of a read(probably like write)
 		end//else if(transaction_type_o)
 	end//always
 
-//	computation of transaction_type FOR NOW FAKE BIT
-	assign transaction_type_o = !head_queue_r[head_pointer_r][0];
+//	computation of transaction_type, if tha packet has a head_flit => write, if has a head_tail_flit => read
+	assign transaction_type_o = (head_queue_r[head_pointer_r][`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT) ? 0 : 1;
 
 	//computation of burst_lenght_o
 	always @(*) begin
 		if(transaction_type_o) begin//if WRITE, check if is a little message or a big message
-			burst_lenght_o = (sel_r[head_pointer_r]) ? `MAX_BURST_LENGHT : 1;
+			burst_lenght_o = 1;
 		end else begin//if READ, the reply will be a big message
 			burst_lenght_o = `MAX_BURST_LENGHT;
 		end

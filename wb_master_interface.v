@@ -34,9 +34,9 @@ module wb_master_interface
 	input																	is_a_pending_transaction_i,//reply from the table, high if the message is a reply for a node
 	output	reg														query_o,//high if we are querying the table
 	output	reg														pending_transaction_executed_o,//high if the reply has been executed and we receive the ack
-	output			[`BUS_ADDRESS_WIDTH-1:0]					query_sender_o,//local node that begin the transaction(PROBABLY NOT ALL THE BIT IN THE ADDRESS ARE USEFULL) 
-	output			[`BUS_ADDRESS_WIDTH-1:0]					query_recipient_o,//remote node that generate the reply
-	output			[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]	transaction_type_o,
+	output			[`N_BIT_SRC_HEAD_FLIT-1:0]					query_sender_o,//local node that begin the transaction(PROBABLY NOT ALL THE BIT IN THE ADDRESS ARE USEFULL) 
+	output			[`N_BIT_DEST_HEAD_FLIT-1:0]				query_recipient_o,//remote node that generate the reply
+	output			[`N_BIT_CMD_HEAD_FLIT-1:0]					transaction_type_o,
 
 	//wb_slave_interface side
 	output	reg														performing_read_o,//unused
@@ -430,6 +430,13 @@ module wb_master_interface
 	end//always
 	//end FSM
 
-	//query_sender_o, query_recipient, transaction_type_o DA FARE
+	//query_sender_o, query_recipient, transaction_type_o, they are registers
+	always @(posedge clk) begin
+		if(state==IDLE && r_bus_arbitration_i) begin
+			query_sender_o <= data_i[`SRC_BITS_HEAD_FLIT];
+			query_recipient <= data_i[`DEST_BITS_HEAD_FLIT];
+			transaction_type_o <= data_i[`CMD_BITS_HEAD_FLIT];
+		end//if(state==IDLE && r_bus_arbitration_i)
+	end//always
 
 endmodule//wb_master_interface

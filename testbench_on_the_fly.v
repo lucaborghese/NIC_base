@@ -25,15 +25,15 @@ module testbench_on_the_fly
 
 	//to insert new transaction
 	reg														new_pending_transaction_i;
-	reg	[`BUS_ADDRESS_WIDTH-1:0]					new_sender_i;
-	reg	[`BUS_ADDRESS_WIDTH-1:0]					new_recipient_i;
-	reg	[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]	new_transaction_type_i;
+	reg	[`N_BIT_SRC_HEAD_FLIT-1:0]					new_sender_i;
+	reg	[`N_BIT_DEST_HEAD_FLIT-1:0]				new_recipient_i;
+	reg	[`N_BIT_CMD_HEAD_FLIT-1:0]					new_transaction_type_i;
 
 	//to query the table
 	reg														query_i;
-	reg	[`BUS_ADDRESS_WIDTH-1:0]					query_sender_i;
-	reg	[`BUS_ADDRESS_WIDTH-1:0]					query_recipient_i;
-	reg	[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]	query_transaction_type_i;
+	reg	[`N_BIT_SRC_HEAD_FLIT-1:0]					query_sender_i;
+	reg	[`N_BIT_DEST_HEAD_FLIT-1:0]				query_recipient_i;
+	reg	[`N_BIT_CMD_HEAD_FLIT-1:0]					query_transaction_type_i;
 	reg														delete_transaction_i;
 	wire														is_a_pending_transaction_o;
 

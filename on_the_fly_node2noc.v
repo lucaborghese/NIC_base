@@ -17,24 +17,24 @@ module on_the_fly_node2noc
 
 	//to insert new transactions
 	input																	new_pending_transaction_i,//high if the new_* signals are valid
-	input				[`BUS_ADDRESS_WIDTH-1:0]					new_sender_i,//sender of the new pending transaction
-	input				[`BUS_ADDRESS_WIDTH-1:0]					new_recipient_i,//recipient of the new pending transaction
-	input				[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]	new_transaction_type_i,//type of the new pending transaction
+	input				[`N_BIT_SRC_HEAD_FLIT-1:0]					new_sender_i,//sender of the new pending transaction
+	input				[`N_BIT_DEST_HEAD_FLIT-1:0]				new_recipient_i,//recipient of the new pending transaction
+	input				[`N_BIT_CMD_HEAD_FLIT-1:0]					new_transaction_type_i,//type of the new pending transaction
 
 	//query the table
 	input																	query_i,//high if query_* are valid, and at soon as possible is_a_pending_query will be valid
-	input				[`BUS_ADDRESS_WIDTH-1:0]					query_sender_i,
-	input				[`BUS_ADDRESS_WIDTH-1:0]					query_recipient_i,
-	input				[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]	query_transaction_type_i,
+	input				[`N_BIT_SRC_HEAD_FLIT-1:0]					query_sender_i,
+	input				[`N_BIT_DEST_HEAD_FLIT-1:0]				query_recipient_i,
+	input				[`N_BIT_CMD_HEAD_FLIT-1:0]					query_transaction_type_i,
 	input																	delete_transaction_i,//if high with query_i, it deletes the queried transaction if exist at the end of the cycle
 	output	reg														is_a_pending_transaction_o//query reply, combinatorial
 	);
 
 	//table
 	reg	[`TABLE_PENDING_NODE2NOC_WIDTH-1:0]		valid_bit_r;
-	reg	[`BUS_ADDRESS_WIDTH-1:0]					sender_r[`TABLE_PENDING_NODE2NOC_WIDTH-1:0];
-	reg	[`BUS_ADDRESS_WIDTH-1:0]					recipient_r[`TABLE_PENDING_NODE2NOC_WIDTH-1:0];
-	reg	[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]	transaction_type_r[`TABLE_PENDING_NODE2NOC_WIDTH-1:0];
+	reg	[`N_BIT_SRC_HEAD_FLIT-1:0]					sender_r[`TABLE_PENDING_NODE2NOC_WIDTH-1:0];
+	reg	[`N_BIT_DEST_HEAD_FLIT-1:0]				recipient_r[`TABLE_PENDING_NODE2NOC_WIDTH-1:0];
+	reg	[`N_BIT_CMD_HEAD_FLIT-1:0]					transaction_type_r[`TABLE_PENDING_NODE2NOC_WIDTH-1:0];
 	reg	[N_BITS_POINTER-1:0]							next_free_slot_pointer;
 	reg	[N_BITS_POINTER-1:0]							query_result_pointer;
 	reg	[`TABLE_PENDING_NODE2NOC_WIDTH-1:0]		next_valid_bit;
