@@ -32,22 +32,22 @@ module fifo_nic2noc
 	input															is_valid_i,
 
 	//vc_allocator side
-	output			[N_TOT_OF_VC-1:0]						fifo_pointer_state_o,
-	output			[N_TOT_OF_VC-1:0]						free_signal_o
+	output			[N_TOT_OF_VC-1:0]						fifo_pointer_state_o
 	);
 
 	genvar i;
 
-	//bypass of in_link_i, is_valid_i and free_signal_i
+	//bypass of in_link_i and is_valid_i
 	assign out_link_o = in_link_i;
 	assign is_valid_o = is_valid_i;
-	assign free_signal_o = free_signal_i;
 
 	//pointer
 	reg	[N_BITS_POINTER-1:0]	fifo_pointer_r[N_TOT_OF_VC-1:0];
 	wire	[N_BITS_POINTER-1:0]	next_fifo_pointer[N_TOT_OF_VC-1:0];
 	reg	[N_TOT_OF_VC-1:0]		fifo_status_r;//1 busy, 0 idle
 	reg	[N_TOT_OF_VC-1:0]		next_fifo_status;
+	reg	[N_TOT_OF_VC-1:0]		propagate_credit_r;//1 propagate, 0 do not propagate
+	reg	[N_TOT_OF_VC-1:0]		next_propagate_credit;
 
 	//update of fifo_pointer_r
 	integer k0;
@@ -77,7 +77,23 @@ module fifo_nic2noc
 	always @(*) begin
 		next_fifo_status = fifo_status_r;
 		next_fifo_status = next_fifo_status | g_fifo_pointer_i;//the granted pointer must pass in busy state
-		next_fifo_status = next_fifo_status & ~release_pointer_i;//the released pointer pass in idle
+		next_fifo_status = next_fifo_status & ~free_signal_i;//the released pointer pass in idle
+	end//always
+
+	//update of propagate_credit_r
+	always @(posedge clk) begin
+		if(rst) begin
+			propagate_credit_r <= 0;
+		end else begin
+			propagate_credit_r <= next_propagate_credit;
+		end
+	end//always
+
+	//computation of next_propagate_credit
+	always @(*) begin
+		next_propagate_credit = propagate_credit_r;
+		next_propagate_credit = next_fifo_status | g_fifo_pointer_i;//the granted pointer must pass in busy state
+		next_propagate_credit = next_fifo_status & ~release_pointer_i;//the released pointer pass in idle
 	end//always
 
 	//computation of fifo_pointer_state_o
@@ -91,6 +107,10 @@ module fifo_nic2noc
 	endgenerate
 
 	//forward of credit signal
-	assign credit_signal_o = credit_signal_i;
+	generate
+		for( i=0 ; i<N_TOT_OF_VC ; i=i+1 ) begin : credit_signal_o_forwarding
+			assign credit_signal_o[i] = credit_signal_i[i] && propagate_credit_r[i];
+		end//for
+	endgenerate
 
 endmodule//fifo_nic2noc

@@ -74,8 +74,8 @@ module flits_buffer
 		case(state)
 			IDLE: begin
 				clear_buffer = 0;
+				free_signal_o = 0;
 				if(is_valid_i) begin//NEW FLIT ARRIVE
-					free_signal_o = 0;
 					credit_signal_o = 1;
 					store = 1;
 					case(flit_type)
@@ -91,7 +91,6 @@ module flits_buffer
 					endcase//flit_type
 				end else begin//NO NEW FLIT ARRIVING
 					next_state = IDLE;
-					free_signal_o = 1;
 					credit_signal_o = 0;
 					store = 0;
 				end//else if(is_valid)
@@ -136,7 +135,7 @@ module flits_buffer
 			end//REQUEST_PACKET2MESSAGE
 
 			default: begin
-				free_signal_o = 0;
+				free_signal_o = 1;
 				credit_signal_o = 0;
 				store = 0;
 				clear_buffer = 1;

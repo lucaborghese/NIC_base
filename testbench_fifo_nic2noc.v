@@ -40,7 +40,6 @@ module testbench_fifo_nic2noc
 	reg												is_valid_i;
 
 	//VA side
-	wire	[N_TOT_OF_VC-1:0]		free_signal_o;
 	wire	[N_TOT_OF_VC-1:0]		fifo_pointer_state_o;
 
 	fifo_nic2noc
@@ -67,7 +66,6 @@ module testbench_fifo_nic2noc
 		.in_link_i(in_link_i),
 		.is_valid_i(is_valid_i),
 		//vc_allocator side
-		.free_signal_o(free_signal_o),
 		.fifo_pointer_state_o(fifo_pointer_state_o)
 		);
 
@@ -92,9 +90,12 @@ module testbench_fifo_nic2noc
 		g_fifo_pointer_i = 0;
 		release_pointer_i = 6'b001001;
 		@(posedge clk);
+		credit_signal_i = 6'b001000;
 		release_pointer_i = 0;
 		@(posedge clk);
 		g_fifo_pointer_i = 6'b000001;
+		credit_signal_i = 6'b000000;
+		free_signal_i = 6'b001001;
 		release_pointer_i = 6'b000010;
 		@(posedge clk);
 		release_pointer_i = 0;
