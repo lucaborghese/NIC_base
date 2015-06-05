@@ -107,10 +107,6 @@ module fifo_nic2noc
 	endgenerate
 
 	//forward of credit signal
-	generate
-		for( i=0 ; i<N_TOT_OF_VC ; i=i+1 ) begin : credit_signal_o_forwarding
-			assign credit_signal_o[i] = credit_signal_i[i] && propagate_credit_r[i];
-		end//for
-	endgenerate
+	assign credit_signal_o = credit_signal_i & propagate_credit_r;
 
 endmodule//fifo_nic2noc
