@@ -30,9 +30,9 @@ module wb_slave_interface
 
 	//on_the_fly_node2noc table side
 	output	reg															new_pending_transaction_o,//high if the new_* signals are valid
-	output			[`BUS_ADDRESS_WIDTH-1:0]						new_sender_o,//sender of the new pending transaction
-	output			[`BUS_ADDRESS_WIDTH-1:0]						new_recipient_o,//recipient of the new pending transaction
-	output			[`N_BITS_COHERENCE_MESSAGE_TYPE-1:0]		new_transaction_type_o,//type of the new pending transaction
+	output			[`N_BIT_SRC_HEAD_FLIT-1:0]						new_sender_o,//sender of the new pending transaction
+	output			[`N_BIT_DEST_HEAD_FLIT-1:0]					new_recipient_o,//recipient of the new pending transaction
+	output			[`N_BIT_CMD_HEAD_FLIT-1:0]						new_transaction_type_o,//type of the new pending transaction
 
 	//link_allocator side
 	output			[N_FIFO_OUT_BUFFER-1:0]							r_la_o,//one bit for each fifo_out_buffer, if the i-th bit is high it requires LA stage
@@ -57,6 +57,7 @@ module wb_slave_interface
 	output																	RTY_O,
 	output																	ERR_O,
 	output	reg															STALL_O,
+	output	reg															ACK_O,
 
 	//fifo side
 	output	reg	[N_TOT_OF_VC-1:0]									g_fifo_pointer_o,//the i-th vc as been allocated from VA
@@ -80,6 +81,15 @@ module wb_slave_interface
 	wire	store_chunk;
 	assign store_chunk = ( ACK_I || (CYC_I && STB_I) );
 
+	//computation of ACK_O DA CONTROLLARE
+	always @(posedge clk) begin
+		if(STB_I && CYC_I && WE_I) begin
+			ACK_O <= 1;
+		end else begin
+			ACK_O <= 0;
+		end
+	end
+
 	//if this signal is high there is at least one fifo_out_buffer free and free_space_pointer point at one of this
 	wire	[N_FIFO_OUT_BUFFER-1:0]	fifo_out_buffer_status;//i-th bit 1, i-th buffer free, busy otherwise
 	wire	free_space_available;
@@ -89,19 +99,21 @@ module wb_slave_interface
 
 	//if this signal is high the message buffer must be cleared
 	reg	clear_buffer;
+	reg	reply_for_wb_master_interface;
 
 	//FSM
 	//input WB side:									CYC_I, STB_I, ACK_I
 	//input control signal:							free_space_available, is_valid_message
 	//output WB side:									STALL_O
-	//output message_buffer internal module:	clear_buffer
+	//output message_buffer internal module:	clear_buffer, reply_for_wb_master_interface
 	//output on_the_fly_table:						new_pending_transaction_o
-	localparam IDLE								=	2'b00;
-	localparam WB_CYCLE							=	2'b01;
-	localparam WB_CYCLE_WAIT_MASTER_REPLY	=	2'b10;
-	localparam RECEIVE							=	2'b11;
-	reg	[1:0]	state;
-	reg	[1:0]	next_state;
+	localparam IDLE										=	3'b000;
+	localparam WB_CYCLE_WRITE							=	3'b001;
+	localparam WB_CYCLE_READ							=	3'b010;
+	localparam WB_CYCLE_READ_WAIT_MASTER_REPLY	=	3'b011;
+	localparam RECEIVE									=	3'b100;
+	reg	[2:0]	state;
+	reg	[2:0]	next_state;
 
 	//state update
 	always @(posedge clk) begin
@@ -120,46 +132,65 @@ module wb_slave_interface
 				clear_buffer = 0;
 				STALL_O = 0;
 				next_state = IDLE;
+				reply_for_wb_master_interface = 0;
 				if(free_space_available) begin
 					if(ACK_I) begin
 						next_state = RECEIVE;
 					end else begin
 						if(CYC_I) begin
-							next_state = WB_CYCLE;
+							if(WE_I) begin//write
+								next_state = WB_CYCLE_WRITE;
+							end else begin//read
+								next_state = WB_CYCLE_READ;
+							end//else if(WE_I)
 						end//if(CYC_I)
 					end//else if(ACK_I)
 				end else begin
 					STALL_O = 1;
 				end//else if(free_space_available)
 			end//IDLE
-			WB_CYCLE: begin
+			WB_CYCLE_WRITE: begin
+				STALL_O = 0;
+				new_pending_transaction_o = 0;
+				reply_for_wb_master_interface = 0;
+				if(is_valid_message) begin
+					next_state = IDLE;
+					clear_buffer = 1;
+				end else begin
+					next_state = WB_CYCLE_WRITE;
+					clear_buffer = 0;
+				end//else if(is_valid_message)
+			end//WB_CYCLE_WRITE
+			WB_CYCLE_READ: begin
 				STALL_O = 0;
 				if(is_valid_message) begin
-					next_state = WB_CYCLE_WAIT_MASTER_REPLY;
+					next_state = WB_CYCLE_READ_WAIT_MASTER_REPLY;
 					clear_buffer = 1;
 					new_pending_transaction_o = 1;
 				end else begin
-					next_state = WB_CYCLE;
+					next_state = WB_CYCLE_READ;
 					clear_buffer = 0;
 					new_pending_transaction_o = 0;
 				end//else if(is_valid_message)
-			end//WB_CYCLE
-			WB_CYCLE_WAIT_MASTER_REPLY: begin
+			end//WB_CYCLE_READ
+			WB_CYCLE_READ_WAIT_MASTER_REPLY: begin
 				STALL_O = 0;
 				clear_buffer = 0;
 				new_pending_transaction_o = 0;
+				reply_for_wb_master_interface = 0;
 				if(!free_space_available) begin
 					STALL_O = 1;
 				end//if(!free_space_available)
-				if(CYC_I) begin//when CYC_I go down the WB_CYCLE terminates
-					next_state = WB_CYCLE_WAIT_MASTER_REPLY;
+				if(CYC_I) begin//when CYC_I go down the WB_CYCLE_READ terminates
+					next_state = WB_CYCLE_READ_WAIT_MASTER_REPLY;
 				end else begin
 					next_state = IDLE;
 				end//
-			end//WB_CYCLE_WAIT_MASTER_REPLY
+			end//WB_CYCLE_READ_WAIT_MASTER_REPLY
 			RECEIVE: begin
 				STALL_O = 0;
 				new_pending_transaction_o = 0;
+				reply_for_wb_master_interface = 1;
 				if(is_valid_message) begin
 					next_state = IDLE;
 					clear_buffer = 1;
@@ -198,6 +229,7 @@ module wb_slave_interface
 		.WE_I(WE_I),
 		.is_valid_i(store_chunk),
 		.clear_buffer_i(clear_buffer),
+		.reply_for_wb_master_interface_i(reply_for_wb_master_interface),
 		//output
 		.pkt_o(pkt_from_message_buffer),
 		.vnet_id_o(vnet_id_from_message_buffer),
@@ -311,7 +343,9 @@ module wb_slave_interface
 	end//always
 
 	//computation of new_sender_o, new_recipient_o and new_transaction_type_o from pkt_from_message_buffer
-	//DA FARE
+	assign new_sender_o = pkt_from_message_buffer[`SRC_BITS_HEAD_FLIT];
+	assign new_recipient_o = pkt_from_message_buffer[`DEST_BITS_HEAD_FLIT];
+	assign new_transaction_type_o = pkt_from_message_buffer[`CMD_BITS_HEAD_FLIT];
 
 	//computation of g_fifo_pointer_o and g_fifo_out_buffer_id_o from g_va_i and g_va_vc_id_i
 	wire	[N_TOT_OF_VC-1:0]	g_va_vc_id[N_FIFO_OUT_BUFFER-1:0];

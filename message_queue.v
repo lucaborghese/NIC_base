@@ -163,7 +163,7 @@ module message_queue
 	//computation of address_o
 	assign address_o = head_queue_r[head_pointer_r][`HEAD_FLIT_ADDRESS_BITS];
 
-	//computation of sel_o DA FINIRE
+	//computation of sel_o DA FINIRE per ora sempre tutti 1
 	always @(*) begin
 		sel_o = 0;
 		if(transaction_type_o) begin//if WRITE
@@ -182,14 +182,13 @@ module message_queue
 	end//always
 
 //	computation of transaction_type, if tha packet has a head_flit => write, if has a head_tail_flit => read
-	assign transaction_type_o = (head_queue_r[head_pointer_r][`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT) ? 0 : 1;
+	assign transaction_type_o = (data_queue_r[head_pointer_r][`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT && read_request(data_queue_r[head_pointer_r][`CMD_BITS_HEAD_FLIT])) ? 0 : 1;
 
 	//computation of burst_lenght_o
 	always @(*) begin
-		if(transaction_type_o) begin//if WRITE, check if is a little message or a big message
+		burst_lenght_o = `MAX_BURST_LENGHT;
+		if(transaction_type_o && control_packet(data_queue_r[head_pointer_r][`CMD_BITS_HEAD_FLIT])) begin//if WRITE, check if is a little message or a big message
 			burst_lenght_o = 1;
-		end else begin//if READ, the reply will be a big message
-			burst_lenght_o = `MAX_BURST_LENGHT;
 		end
 	end//always
 

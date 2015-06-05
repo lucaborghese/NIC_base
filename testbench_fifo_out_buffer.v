@@ -97,7 +97,7 @@ module testbench_fifo_out_buffer
 		rst = 0;
 		@(posedge clk);
 		is_valid_i = 1;
-		pkt_i = 80'hFFF2BBB1BBB1BBB10000;
+		pkt_i = 80'hFFF2BBB1BBB1BBB10003;
 		@(posedge clk);
 		is_valid_i = 0;
 		@(posedge clk);
@@ -111,7 +111,7 @@ module testbench_fifo_out_buffer
 		g_la_i = 1;
 		@(posedge clk);
 		g_la_i = 0;
-		@(posedge clk);
+/*		@(posedge clk);
 		g_la_i = 1;
 		@(posedge clk);
 		g_la_i = 0;
@@ -128,7 +128,7 @@ module testbench_fifo_out_buffer
 		@(posedge clk);
 		g_la_i = 0;
 		@(posedge clk);
-		@(posedge clk);
+*/		@(posedge clk);
 /*		@(posedge clk);
 		is_valid_i = 1;
 		pkt_i = 80'h0003;

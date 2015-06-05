@@ -75,7 +75,15 @@ module testbench_NoC2WB
 
 	//signal wb_master_interface -> wb_fake_master
 	wire	ACK_NIC_NODE;
-	
+
+	//table
+	reg														is_a_pending_transaction_i;
+	wire														query_o;
+	wire														pending_transaction_executed_o;
+	wire	[`N_BIT_SRC_HEAD_FLIT-1:0]					query_sender_o; 
+	wire	[`N_BIT_DEST_HEAD_FLIT-1:0]				query_recipient_o;
+	wire	[`N_BIT_CMD_HEAD_FLIT-1:0]					transaction_type_o;
+
 	//signal wb_arbiter(fake_slave) -> wb_master_interface
 	wire	gnt_wb;
 
@@ -169,6 +177,13 @@ module testbench_NoC2WB
 		.DAT_O(DAT_MASTER_SLAVE),
 		.SEL_O(SEL_IO),
 		.CTI_O(CTI_IO),
+		//table I/O
+		.is_a_pending_transaction_i(is_a_pending_transaction_i),
+		.query_o(query_o),
+		.pending_transaction_executed_o(pending_transaction_executed_o),
+		.query_sender_o(query_sender_o),
+		.query_recipient_o(query_recipient_o),
+		.transaction_type_o(transaction_type_o),
 		//input from WB arbiter(fake_slave)
 		.gnt_wb_i(gnt_wb)
 		);
@@ -187,7 +202,7 @@ module testbench_NoC2WB
 		.CTI_I(CTI_IO),
 		//output for wb_master_interface
 		.DAT_O(DAT_SLAVE_MASTER),
-		.ACK_O(ACK_IO),
+		.ACK_O(ACK_NODE_NIC),
 		.RTY_O(RTY_IO),
 		.ERR_O(ERR_IO),
 		.STALL_O(STALL_IO),
@@ -200,6 +215,7 @@ module testbench_NoC2WB
 		rst = 1;
 		in_link_i = 0;
 		is_valid_i = 0;
+		is_a_pending_transaction_i = 1;
 		repeat(2) @(posedge clk);
 		rst = 0;
 		@(posedge clk);
@@ -213,15 +229,15 @@ module testbench_NoC2WB
 		in_link_i = `FLIT_WIDTH'hC1;
 		@(posedge clk);
 		in_link_i = `FLIT_WIDTH'hD2;
-		@(posedge clk);
+/*		@(posedge clk);
 		is_valid_i = 0;
 		@(posedge clk);
 		@(posedge clk);
 		is_valid_i = 1;
 		in_link_i = `FLIT_WIDTH'hF3;
-		@(posedge clk);
+*/		@(posedge clk);
 		is_valid_i = 0;
-		repeat(20) @(posedge clk);
+		repeat(15) @(posedge clk);
 		$finish;
 	end
 

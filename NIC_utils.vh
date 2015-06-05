@@ -5,6 +5,7 @@
 // Description:	Definition of constant function etc.
 //
 //////////////////////////////////////////////////////////////////////////////////
+`include "NIC-defines.v"
 
 //computation of the $clog2 function, not always present in compiler(not usable constant function in icarus verilog)
 function integer clog2;
@@ -41,5 +42,21 @@ begin
 		if (in[i])
 			fl1 = i;
 	end
+end
+endfunction
+
+// read_request - based on the cmd bits find if it is a read request DA FARE
+function integer read_request;
+input	[`N_BIT_CMD_HEAD_FLIT-1:0] cmd;
+begin
+	read_request = (cmd) ? 0 : 1;
+end
+endfunction
+
+// control_packet - based on the cmd bits find if it is a control packet DA FARE
+function integer control_packet;
+input	[`N_BIT_CMD_HEAD_FLIT-1:0] cmd;
+begin
+	control_packet = (cmd==2) ? 1 : 0;
 end
 endfunction

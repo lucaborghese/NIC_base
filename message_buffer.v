@@ -22,11 +22,12 @@ module message_buffer
 	input			[`BUS_DATA_WIDTH-1:0]						DAT_I,
 	input			[`BUS_SEL_WIDTH-1:0]							SEL_I,
 	input																WE_I,
+	input																reply_for_wb_master_interface_i,//if high, the stored packet is a reply for the wb_master_interface
 	input																is_valid_i,//if high the signal above are valid
 	input																clear_buffer_i,//if valid the message stored in the buffer must be transformed in packet and sent out
 	//data_out
 	output		[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	pkt_o,
-	output		[N_BITS_VNET_ID-1:0]							vnet_id_o,
+	output	reg	[N_BITS_VNET_ID-1:0]						vnet_id_o,
 	output															is_valid_o
 	);
 
@@ -34,24 +35,24 @@ module message_buffer
 	reg	[`BUS_ADDRESS_WIDTH-1:0]	address_buffer_r;
 	reg	[`BUS_DATA_WIDTH-1:0]		data_buffer_r[`MAX_BURST_LENGHT-1:0];
 	reg	[`BUS_SEL_WIDTH-1:0]			sel_r[`MAX_BURST_LENGHT-1:0];
-	reg	[N_BITS_BURST_LENGHT-1:0]	free_data_pointer_r;
-	reg	[N_BITS_BURST_LENGHT-1:0]	next_free_data_pointer;
-	
-	//update of free_data_pointer_r
+	reg	[N_BITS_BURST_LENGHT:0]		n_of_stored_chunk_r;
+	reg	[N_BITS_BURST_LENGHT:0]		next_n_of_stored_chunk;
+
+	//update of n_of_stored_chunk_r
 	always @(posedge clk) begin
 		if(rst || clear_buffer_i) begin
-			free_data_pointer_r <= 0;
+			n_of_stored_chunk_r <= 0;
 		end else begin
-			free_data_pointer_r <= next_free_data_pointer;
-		end
+			n_of_stored_chunk_r <= next_n_of_stored_chunk;
+		end//if(rst)
 	end//always
 
-	//computation of next_free_data_pointer
+	//computation of next_n_of_stored_chunk
 	always @(*) begin
-		next_free_data_pointer = free_data_pointer_r;
+		next_n_of_stored_chunk = n_of_stored_chunk_r;
 		if(is_valid_i) begin
-			next_free_data_pointer = next_free_data_pointer + 1;
-		end//if(is_valid_i)
+			next_n_of_stored_chunk = next_n_of_stored_chunk + 1;
+		end
 	end//always
 
 	//storing a new element
@@ -63,20 +64,34 @@ module message_buffer
 			end//for
 		end else begin
 			if(is_valid_i) begin
-				if(free_data_pointer_r==0) begin
+				if(n_of_stored_chunk_r==0) begin
 					address_buffer_r <= ADR_I;
 				end
-				data_buffer_r[free_data_pointer_r] <= DAT_I;
-				sel_r[free_data_pointer_r] <= SEL_I;
+				data_buffer_r[n_of_stored_chunk_r] <= DAT_I;
+				sel_r[n_of_stored_chunk_r] <= SEL_I;
 			end//if(is_valid_i)
 		end//else if(rst || clear_buffer_i)
 	end//always
 
-	//computation of is_valid_o, it understand when a message is complete DA FARE
-	//	assign is_valid_o = ;
+	//computation of r_msg2pkt from n_of_stored_chunk_r and address_buffer_r DA FARE
+	reg r_msg2pkt;
+	always @(*) begin
+		r_msg2pkt = 0;
+		if( ( n_of_stored_chunk_r==1 && data_i[`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT && control_packet(data_i[`CMD_BITS_HEAD_FLIT]) ) || n_of_stored_chunk_r==`MAX_BURST_LENGHT) begin//if in the first message there is a head_tail flit
+			r_msg2pkt = 1;
+		end//if
+	end//always
 
-	//computation of vnet_id_o DA FARE
-	//something using address_buffer_r
+	//computation of is_valid_o
+	assign is_valid_o = r_msg2pkt;
+
+	//computation of vnet_id_o
+	always @(*) begin
+		vnet_id_o = 0;
+		if(r_msg2pkt) begin
+			vnet_id_o = pkt_o[`FLIT_VNET_ID_BITS];
+		end
+	end//always
 
 	//computation of pkt_o
 	genvar i;
@@ -93,6 +108,9 @@ module message_buffer
 		.address_i(address_buffer_r),
 		.data_i(data_i),
 		.sel_i(sel_i),
+		.WE_I(WE_I),
+		.reply_for_wb_master_interface_i(reply_for_wb_master_interface_i),
+		.r_msg2pkt_i(r_msg2pkt),
 		.pkt_o(pkt_o)
 		);
 
