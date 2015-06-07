@@ -12,17 +12,17 @@
 
 module flits_buffer
 	#(
-	parameter N_BITS_POINTER = 3
+	parameter N_BITS_POINTER = 3//clog2(`MAX_PACKET_LENGHT)
 	)
 	(
 	input																clk,//clock signal
 	input																rst,//reset signal(synchronous reset implemented)
 
 	//Router side
-	input			[`FLIT_WIDTH-1:0]								in_link_i,//data link from the NoC's router
-	input																is_valid_i,//high if there is a valid flit in in_link
-	output	reg													credit_signal_o,//high if one flit buffer is emptied in this cycle, low otherwise
-	output	reg													free_signal_o,//high if buffer in idle state, low otherwise
+	input			[`FLIT_WIDTH-1:0]								in_link_i,//data link from NoC's router
+	input																is_valid_i,//high if there is a valid flit in in_link_i
+	output	reg													credit_signal_o,//high if one flit buffer is emptied in this cycle, low otherwise. In this implementation it is not well used, it works only if buffer_r can contain an entire packet
+	output	reg													free_signal_o,//high if buffer_r change state from busy to idle
 
 	//queue side
 	input																g_pkt_to_msg_i,//grant signal of the next stage of the pipeline
@@ -31,6 +31,7 @@ module flits_buffer
 																					//the first flit(starting from bit 0) is the head/head_tail,
 																					//the second flit(starting from bit `FLIT_WIDTH) is the first body,
 																					//etc.
+	output		[N_BITS_POINTER-1:0]							head_pointer_o,//tells which flit in out_link_o is the head(_tail)
 	output		[`MAX_PACKET_LENGHT-1:0]					out_sel_o//number of valid information in the out_link, if the i-th bit is high the i-th flit is valid
 	);
 
@@ -53,9 +54,12 @@ module flits_buffer
 	assign out_sel_o = sel_r;
 	generate
 		for ( i=0 ; i<`MAX_PACKET_LENGHT ; i=i+1 ) begin : out_link_connection
-			assign out_link_o[i*`FLIT_WIDTH+`FLIT_WIDTH-1:i*`FLIT_WIDTH] = buffer_r[i];
+			assign out_link_o[(i+1)*`FLIT_WIDTH-1:i*`FLIT_WIDTH] = buffer_r[i];
 		end//for
 	endgenerate
+
+	//head_pointer_o
+	assign head_pointer_o = head_pointer_r;
 
 	//FSM
 	//input:	is_valid_i, flit_type, g_pkt_to_msg_i

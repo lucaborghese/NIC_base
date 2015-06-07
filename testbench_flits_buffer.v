@@ -30,6 +30,7 @@ module testbench_flits_buffer
 	wire														free_signal;
 	wire														r_packet_to_message;
 	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link;
+	wire	[N_BITS_POINTER-1:0]							head_pointer;
 	wire	[`MAX_PACKET_LENGHT-1:0]					out_sel;
 	
 	//clock
@@ -51,6 +52,7 @@ module testbench_flits_buffer
 		.g_pkt_to_msg_i(g_packet_to_message),
 		.r_pkt_to_msg_o(r_packet_to_message),
 		.out_link_o(out_link),
+		.head_pointer_o(head_pointer),
 		.out_sel_o(out_sel)
 		);
 
@@ -61,46 +63,45 @@ module testbench_flits_buffer
 		is_valid = 0;
 		g_packet_to_message = 0;
 		repeat (2) @ (posedge clk);
-		#1 rst = 0;
+		rst = 0;
 		is_valid = 1;
 		in_link = 64'hFF3;
 		@ (posedge clk);
-		#1 is_valid = 0;
+		is_valid = 0;
 		@ (posedge clk);
 		@ (posedge clk);
 		@ (posedge clk);
-		#1 g_packet_to_message = 1;
+		g_packet_to_message = 1;
 		@ (posedge clk);
-		#1 g_packet_to_message = 0;
+		g_packet_to_message = 0;
 		@ (posedge clk);
 		@ (posedge clk);
 		@ (posedge clk);
-		#1 is_valid = 1;
+		is_valid = 1;
 		in_link = 64'h00;//head flit
 		@ (posedge clk);
-		#1 in_link = 64'h11;//first body flit
+		in_link = 64'h11;//first body flit
 		@ (posedge clk);
-		#1 in_link = 64'h21;//second body flit
+		in_link = 64'h21;//second body flit
 		@ (posedge clk);
-		#1 is_valid = 0;//stop di un ciclo
+		is_valid = 0;//stop di un ciclo
 		@ (posedge clk);
-		#1 is_valid = 1;
+		is_valid = 1;
 		in_link = 64'h31;//third body flit
 		@ (posedge clk);
-/*		#1 in_link = 64'h41;//forth body flit
+/*		in_link = 64'h41;//forth body flit
 		@ (posedge clk);
-		#1 in_link = 64'h51;//fifth body flit
+		in_link = 64'h51;//fifth body flit
 		@ (posedge clk);
-		#1 in_link = 64'h61;//sixth body flit
+		in_link = 64'h61;//sixth body flit
 		@ (posedge clk);
-*/		#1 in_link = 64'h72;//tail flit
+*/		in_link = 64'h72;//tail flit
 		@ (posedge clk);
-		#1 is_valid = 0;
+		is_valid = 0;
 		@ (posedge clk);
-		#1 g_packet_to_message = 1;
+		g_packet_to_message = 1;
 		@ (posedge clk);
-		#1 g_packet_to_message = 0;
-
+		g_packet_to_message = 0;
 		$finish;
 	end//
 
