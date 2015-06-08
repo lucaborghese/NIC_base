@@ -10,7 +10,7 @@
 module link_allocator
 	#(
 	parameter	N_REQUEST_SIGNAL	=	6,
-	parameter	N_BITS_POINTER		=	3
+	parameter	N_BITS_POINTER		=	3//clog2(N_REQUEST_SIGNAL)
 	)
 	(
 	input																	clk,
@@ -34,10 +34,10 @@ module link_allocator
 		end
 	end//always
 
-	//computation of g_channel_o
+	//computation of g_channel_id_o
 	assign g_channel_id_o = next_served_channel;
 
-	//computation of next_served_channel
+	//computation of next_served_channel, a round robin implementation is done
 	integer k0;
 	reg	[N_BITS_POINTER-1:0]	eligible_channel;
 	always @(*) begin

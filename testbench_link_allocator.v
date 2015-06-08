@@ -26,6 +26,7 @@ module testbench_link_allocator
 
 	//fifo side
 	reg	[N_REQUEST_SIGNAL-1:0]	r_la_i;
+	wire									g_la_o;
 	wire	[N_BITS_POINTER-1:0]		g_channel_id_o;
 
 	link_allocator
@@ -41,6 +42,7 @@ module testbench_link_allocator
 		//input fifo side
 		.r_la_i(r_la_i),
 		//output fifo side
+		.g_la_o(g_la_o),
 		.g_channel_id_o(g_channel_id_o)
 		);
 
