@@ -97,7 +97,7 @@ module testbench_fifo_out_buffer
 		rst = 0;
 		@(posedge clk);
 		is_valid_i = 1;
-		pkt_i = 80'hFFF2BBB1BBB1BBB10003;
+		pkt_i = 80'hFFF2DDD1CCC1BBB10000;
 		@(posedge clk);
 		is_valid_i = 0;
 		@(posedge clk);
@@ -110,17 +110,9 @@ module testbench_fifo_out_buffer
 		@(posedge clk);
 		g_la_i = 1;
 		@(posedge clk);
-		g_la_i = 0;
-/*		@(posedge clk);
 		g_la_i = 1;
 		@(posedge clk);
 		g_la_i = 0;
-		@(posedge clk);
-		g_la_i = 1;
-		@(posedge clk);
-		g_la_i = 0;
-		@(posedge clk);
-		g_la_i = 1;
 		@(posedge clk);
 		g_la_i = 0;
 		@(posedge clk);
@@ -128,23 +120,19 @@ module testbench_fifo_out_buffer
 		@(posedge clk);
 		g_la_i = 0;
 		@(posedge clk);
-*/		@(posedge clk);
-/*		@(posedge clk);
-		is_valid_i = 1;
-		pkt_i = 80'h0003;
-		vnet_id_i = 2;
 		@(posedge clk);
-		is_valid_i = 0;
-		g_va_i = 1;
-		vc_id_i = 0;
+		credit_in_i = 1;
 		@(posedge clk);
-		g_va_i = 0;
+		@(posedge clk);
+		g_la_i = 1;
+		@(posedge clk);
+		credit_in_i = 0;
 		g_la_i = 1;
 		@(posedge clk);
 		g_la_i = 0;
 		@(posedge clk);
 		@(posedge clk);
-*/		$finish;
+		$finish;
 	end//initial
 
 endmodule//testbench_fifo_out_buffer
