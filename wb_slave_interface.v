@@ -342,10 +342,10 @@ module wb_slave_interface
 		end//for
 	end//always
 
-	//computation of new_sender_o, new_recipient_o and new_transaction_type_o from pkt_from_message_buffer
-	assign new_sender_o = pkt_from_message_buffer[`SRC_BITS_HEAD_FLIT];
-	assign new_recipient_o = pkt_from_message_buffer[`DEST_BITS_HEAD_FLIT];
-	assign new_transaction_type_o = pkt_from_message_buffer[`CMD_BITS_HEAD_FLIT];
+	//computation of new_sender_o, new_recipient_o and new_transaction_type_o from pkt_from_message_buffer DA VEDERE
+	assign new_sender_o = pkt_from_message_buffer[`DEST_BITS_HEAD_FLIT];
+	assign new_recipient_o = pkt_from_message_buffer[`SRC_BITS_HEAD_FLIT];
+	assign new_transaction_type_o = pkt_from_message_buffer[`CMD_BITS_HEAD_FLIT];//dovrebbe essere sempre fisso
 
 	//computation of g_fifo_pointer_o and g_fifo_out_buffer_id_o from g_va_i and g_va_vc_id_i
 	wire	[N_TOT_OF_VC-1:0]	g_va_vc_id[N_FIFO_OUT_BUFFER-1:0];

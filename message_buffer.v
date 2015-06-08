@@ -77,7 +77,7 @@ module message_buffer
 	reg r_msg2pkt;
 	always @(*) begin
 		r_msg2pkt = 0;
-		if( ( n_of_stored_chunk_r==1 && data_i[`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT && control_packet(data_i[`CMD_BITS_HEAD_FLIT]) ) || n_of_stored_chunk_r==`MAX_BURST_LENGHT) begin//if in the first message there is a head_tail flit
+		if( ( n_of_stored_chunk_r==1 && data_i[`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT && !read_request(data_i[`CMD_BITS_HEAD_FLIT]) ) || n_of_stored_chunk_r==`MAX_BURST_LENGHT) begin//if in the first message there is a head_tail flit
 			r_msg2pkt = 1;
 		end//if
 	end//always
