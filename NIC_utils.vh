@@ -49,7 +49,7 @@ endfunction
 function integer read_request;
 input	[`N_BIT_CMD_HEAD_FLIT-1:0] cmd;
 begin
-	read_request = (cmd) ? 0 : 1;
+	read_request = (cmd) ? 1 : 0;
 end
 endfunction
 
@@ -57,6 +57,6 @@ endfunction
 function integer control_packet;
 input	[`N_BIT_CMD_HEAD_FLIT-1:0] cmd;
 begin
-	control_packet = (cmd==2) ? 1 : 0;
+	control_packet = (cmd==0) ? 1 : 0;
 end
 endfunction

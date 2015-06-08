@@ -2,7 +2,8 @@
 // 
 // Module Name:	message_queue 
 // Project Name:	NIC_base
-// Description:	queue of the PACKET2MESSAGE stage, a packet arrive from the input port(flits_buffers) and wait to be sent over the bus
+// Description:	queue of the PACKET2MESSAGE stage, a packet arrive from the input port(flits_buffer)
+//						and wait to be sent over the bus
 //
 //////////////////////////////////////////////////////////////////////////////////
 `include "NIC-defines.v"
@@ -25,7 +26,7 @@ module message_queue
 	//interface side wb_master_interface
 	output																r_bus_arbitration_o,//if high we require the arbitration over the bus
 	output			[`BUS_ADDRESS_WIDTH-1:0]					address_o,//if r_bus_arbitration_o is high this signal contains the address that must be trasmitted on the WISHBONE
-	output	reg	[`BUS_DATA_WIDTH-1:0]						data_o,//like above, but the signal contains the data
+	output			[`BUS_DATA_WIDTH-1:0]						data_o,//like above, but the signal contains the data
 	output	reg	[`BUS_SEL_WIDTH-1:0]							sel_o,//like above, but contains the SEL_O signal
 	output																transaction_type_o,//like above, but this signal contains the WE_O signal of WISHBONE
 	output	reg	[N_BITS_BURST_LENGHT-1:0]					burst_lenght_o,//number of WISHBONE 'cycle' to transmit the message
@@ -156,9 +157,7 @@ module message_queue
 			assign current_message[i] = data_queue_r[head_pointer_r][(i+1)*`BUS_DATA_WIDTH-1:i*`BUS_DATA_WIDTH];
 		end//for
 	endgenerate
-	always @(*) begin
-		data_o = current_message[current_message_chunk_pointer_r];
-	end//always
+	assign data_o = current_message[current_message_chunk_pointer_r];
 
 	//computation of address_o
 	assign address_o = head_queue_r[head_pointer_r][`HEAD_FLIT_ADDRESS_BITS];
@@ -181,13 +180,13 @@ module message_queue
 		end//else if(transaction_type_o)
 	end//always
 
-//	computation of transaction_type, if tha packet has a head_flit => write, if has a head_tail_flit => read
+	//computation of transaction_type, if tha packet has a head_flit => write, if has a head_tail_flit => read
 	assign transaction_type_o = (data_queue_r[head_pointer_r][`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT && read_request(data_queue_r[head_pointer_r][`CMD_BITS_HEAD_FLIT])) ? 0 : 1;
 
 	//computation of burst_lenght_o
 	always @(*) begin
 		burst_lenght_o = `MAX_BURST_LENGHT;
-		if(transaction_type_o && control_packet(data_queue_r[head_pointer_r][`CMD_BITS_HEAD_FLIT])) begin//if WRITE, check if is a little message or a big message
+		if(transaction_type_o && control_packet(data_queue_r[head_pointer_r][`CMD_BITS_HEAD_FLIT])) begin//if WRITE, check if it is a little message or a big message
 			burst_lenght_o = 1;
 		end
 	end//always

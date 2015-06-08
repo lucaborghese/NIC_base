@@ -12,7 +12,7 @@
 module testbench_message_queue
 	#(
 	parameter	N_BITS_POINTER				=	clog2(`QUEUE_WIDTH),
-	parameter	N_BITS_BURST_LENGHT		=	clog2(( (`MAX_PACKET_LENGHT-1)*`FLIT_WIDTH ) / `BUS_DATA_WIDTH)
+	parameter	N_BITS_BURST_LENGHT		=	clog2(`MAX_BURST_LENGHT)
 	)
 	();
 
@@ -68,22 +68,95 @@ module testbench_message_queue
 		.burst_lenght_o(burst_lenght_o)
 		);
 
+/*
+	//big write
 	initial begin
 		clk = 0;
 		rst = 1;
 		r_pkt_to_msg_i = 0;
+		in_link = 0;
+		in_sel = 0;
 		message_transmitted_i = 0;
 		next_data_i = 0;
 		retry_i = 0;
-		in_link = 0;
-		in_sel = 1;
-		repeat (2) @ (posedge clk);
-		#1 rst = 0;
-		@ (posedge clk);
+		repeat (2) @(posedge clk);
+		rst = 0;
+		@(posedge clk);
 		r_pkt_to_msg_i = 1;
-		@ (posedge clk);
-		@ (posedge clk);
-		@ (posedge clk);
+		in_link = 80'hFFF2BBB1BBB1BBB10000;
+		in_sel = 5'b11111;
+		@(posedge clk);
+		@(posedge clk);
+		r_pkt_to_msg_i = 0;
+		next_data_i = 1;
+		@(posedge clk);
+		@(posedge clk);
+		next_data_i = 0;
+		@(posedge clk);
+		retry_i = 1;
+		@(posedge clk);
+		retry_i = 0;
+		next_data_i = 1;
+		repeat(4) @(posedge clk);
+		next_data_i = 0;
+		message_transmitted_i = 1;
+		@(posedge clk);
+		message_transmitted_i = 0;
+		@(posedge clk);
+		$finish;
+	end//initial
+*/
+/*
+	//saturate memory
+	initial begin
+		clk = 0;
+		rst = 1;
+		r_pkt_to_msg_i = 0;
+		in_link = 0;
+		in_sel = 0;
+		message_transmitted_i = 0;
+		next_data_i = 0;
+		retry_i = 0;
+		repeat (2) @(posedge clk);
+		rst = 0;
+		@(posedge clk);
+		r_pkt_to_msg_i = 1;
+		in_link = 80'hFFF2BBB1BBB1BBB10000;
+		in_sel = 5'b11111;
+		fork
+			repeat(30) @(posedge clk);
+			repeat(15) begin
+				@(posedge clk);
+				@(posedge clk);
+				message_transmitted_i = 1;
+				@(posedge clk);
+				message_transmitted_i = 0;
+			end
+		join
+		$finish;
+	end//initial
+*/
+	//small message
+	initial begin
+		clk = 0;
+		rst = 1;
+		r_pkt_to_msg_i = 0;
+		in_link = 0;
+		in_sel = 0;
+		message_transmitted_i = 0;
+		next_data_i = 0;
+		retry_i = 0;
+		repeat (2) @(posedge clk);
+		rst = 0;
+		@(posedge clk);
+		r_pkt_to_msg_i = 1;
+		in_link = 80'h00000000000000000003;
+		in_sel = 5'b00001;
+		@(posedge clk);
+		@(posedge clk);
+		r_pkt_to_msg_i = 0;
+		@(posedge clk);
+		@(posedge clk);
 		$finish;
 	end//initial
 
