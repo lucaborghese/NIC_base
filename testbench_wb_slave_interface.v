@@ -156,15 +156,25 @@ module testbench_wb_slave_interface
 		ACK_I = 1;
 		repeat(5) @(posedge clk);
 		ACK_I = 0;
-
-/*		CYC_I = 1;
+		@(posedge clk);
+		ACK_I = 1;
+		repeat(5) @(posedge clk);
+		ACK_I = 0;
+		@(posedge clk);
+		ACK_I = 1;
+		repeat(5) @(posedge clk);
+		ACK_I = 0;
+		@(posedge clk);
+		@(posedge clk);
+		CYC_I = 1;
+		WE_I = 1;
 		@(posedge clk)
 		STB_I = 1;
-		repeat(4) @(posedge clk);
+		repeat(5) @(posedge clk);
 		STB_I = 0;
-*/		@(posedge clk);
 		@(posedge clk);
-		g_va_i = 6'b000001;
+		@(posedge clk);
+/*		g_va_i = 6'b000001;
 		g_va_vc_id_i = 36'b000000000001;
 		@(posedge clk);
 		g_va_i = 0;
@@ -173,7 +183,7 @@ module testbench_wb_slave_interface
 		repeat(5) @(posedge clk);
 		g_la_i = 0;
 		@(posedge clk);
-		$finish;
+*/		$finish;
 	end//initial
 
 endmodule//testbench_wb_slave_interface

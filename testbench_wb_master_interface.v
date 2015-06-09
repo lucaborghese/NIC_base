@@ -12,9 +12,11 @@
 
 module testbench_wb_master_interface
 	#(
-	parameter	N_BITS_BURST_LENGHT	=	( (`MAX_PACKET_LENGHT-1)*`FLIT_WIDTH ) / `BUS_DATA_WIDTH
+	parameter	N_BITS_BURST_LENGHT	=	clog2(`MAX_BURST_LENGHT)
 	)
 	();
+
+	`include "NIC_utils.vh"
 
 	reg	clk;
 	reg	rst;
@@ -149,7 +151,7 @@ module testbench_wb_master_interface
 		#1 rst = 0;
 		@(posedge clk);
 		r_bus_arbitration_i = 1;
-		burst_lenght_i = 6;
+		burst_lenght_i = 5;
 		@(posedge clk);
 		repeat(20) @(posedge clk);
 		$finish;
