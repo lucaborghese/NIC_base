@@ -9,7 +9,7 @@
 //INPUT PORT
 `define	MAX_CREDIT	10
 `define	N_OF_VC		2
-`define	N_OF_VN		3
+`define	N_OF_VN		2
 
 //POSSIBLE FLIT TYPE
 `define	HEAD_FLIT		2'b00
@@ -45,10 +45,10 @@
 `define	QUEUE_WIDTH	8//size of the queue in message(1 message = `MAX_PACKET_LENGHT*`FLIT_WIDTH bit)
 
 //WISHBONE BUS PROPERTIES
-`define	BUS_DATA_WIDTH		16//in bit
+`define	BUS_DATA_WIDTH		32//in bit
 `define	BUS_ADDRESS_WIDTH	8//in bit
 `define	GRANULARITY			8//granularity of data over dat_o in bit, SEL_O width = BUS_DATA_WIDTH / GRANULARITY
-`define	MAX_BURST_LENGHT	(`MAX_PACKET_LENGHT*`FLIT_WIDTH)/`BUS_DATA_WIDTH
+`define	MAX_BURST_LENGHT	3//(`MAX_PACKET_LENGHT*`FLIT_WIDTH)/`BUS_DATA_WIDTH
 `define	BUS_SEL_WIDTH		`BUS_DATA_WIDTH/`GRANULARITY
 //CTI signal(cycle type identifier)
 `define	CTI_CLASSIC_CYCLE						3'b000
