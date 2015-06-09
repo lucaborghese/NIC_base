@@ -160,7 +160,7 @@ module message_queue
 	assign data_o = current_message[current_message_chunk_pointer_r];
 
 	//computation of address_o
-	assign address_o = head_queue_r[head_pointer_r][`HEAD_FLIT_ADDRESS_BITS];
+	assign address_o = head_queue_r[head_pointer_r];
 
 	//computation of sel_o DA FINIRE per ora sempre tutti 1
 	always @(*) begin

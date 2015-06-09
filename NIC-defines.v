@@ -46,7 +46,7 @@
 
 //WISHBONE BUS PROPERTIES
 `define	BUS_DATA_WIDTH		32//in bit
-`define	BUS_ADDRESS_WIDTH	8//in bit
+`define	BUS_ADDRESS_WIDTH	16//in bit
 `define	GRANULARITY			8//granularity of data over dat_o in bit, SEL_O width = BUS_DATA_WIDTH / GRANULARITY
 `define	MAX_BURST_LENGHT	3//(`MAX_PACKET_LENGHT*`FLIT_WIDTH)/`BUS_DATA_WIDTH
 `define	BUS_SEL_WIDTH		`BUS_DATA_WIDTH/`GRANULARITY

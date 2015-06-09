@@ -22,7 +22,11 @@ module msg_to_pkt
 	always @(*) begin
 		pkt_o = 0;
 		if(r_msg2pkt_i) begin
-			pkt_o = data_i;
+			if(WE_I) begin//if write
+				pkt_o = data_i;
+			end else begin//if read
+				pkt_o = address_i;
+			end//else if(WE_I)
 		end//if(r_msg2pkt_i)
 	end//always
 
