@@ -40,7 +40,7 @@ module message_queue
 	//queue registers(FIFO)
 	reg	[`QUEUE_WIDTH-1:0]								valid_bit_r;//if the i-th bit is high head_queue_r[i] and data_queue_r[i] contains a message(at least there is the head_tail flit)
 	reg	[`FLIT_WIDTH-1:0]									head_queue_r[`QUEUE_WIDTH-1:0];
-	reg	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]		data_queue_r[`QUEUE_WIDTH-1:0];
+	reg	[`BUS_DATA_WIDTH*`MAX_BURST_LENGHT-1:0]	data_queue_r[`QUEUE_WIDTH-1:0];
 	reg	[(`MAX_PACKET_LENGHT-1)-1:0]					sel_r[`QUEUE_WIDTH-1:0];//if the i-th bit the i-th flit in data_queue_r[k] contains valid information
 	reg	[N_BITS_POINTER-1:0]								head_pointer_r;//next message that must be sent over WISHBONE
 	reg	[N_BITS_POINTER-1:0]								tail_pointer_r;//next free slot in queue
