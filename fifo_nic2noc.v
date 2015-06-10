@@ -92,8 +92,8 @@ module fifo_nic2noc
 	//computation of next_propagate_credit
 	always @(*) begin
 		next_propagate_credit = propagate_credit_r;
-		next_propagate_credit = next_fifo_status | g_fifo_pointer_i;//the granted pointer must pass in busy state
-		next_propagate_credit = next_fifo_status & ~release_pointer_i;//the released pointer pass in idle
+		next_propagate_credit = next_propagate_credit | g_fifo_pointer_i;//the granted pointer must pass in busy state
+		next_propagate_credit = next_propagate_credit & ~release_pointer_i;//the released pointer pass in idle
 	end//always
 
 	//computation of fifo_pointer_state_o

@@ -79,7 +79,7 @@ module wb_slave_interface
 
 	//if this signal is high we must store another chunk of the message from the bus in the message_buffer
 	wire	store_chunk;
-	assign store_chunk = ( ACK_I || (CYC_I && STB_I) );
+	assign store_chunk = ( ACK_I || (CYC_I && STB_I && state!=WB_CYCLE_READ_WAIT_MASTER_REPLY) );
 
 	//computation of ACK_O DA CONTROLLARE
 	always @(posedge clk) begin
@@ -163,6 +163,7 @@ module wb_slave_interface
 			end//WB_CYCLE_WRITE
 			WB_CYCLE_READ: begin
 				STALL_O = 0;
+				reply_for_wb_master_interface = 0;
 				if(is_valid_message) begin
 					next_state = WB_CYCLE_READ_WAIT_MASTER_REPLY;
 					clear_buffer = 1;
@@ -200,6 +201,7 @@ module wb_slave_interface
 				end//else if(is_valid_message)
 			end//RECEIVE
 			default: begin
+				reply_for_wb_master_interface = 0;
 				STALL_O = 1;
 				clear_buffer = 1;
 				new_pending_transaction_o = 0;

@@ -186,7 +186,7 @@ module message_queue
 	//computation of burst_lenght_o
 	always @(*) begin
 		burst_lenght_o = `MAX_BURST_LENGHT;
-		if(transaction_type_o && control_packet(data_queue_r[head_pointer_r][`CMD_BITS_HEAD_FLIT])) begin//if WRITE, check if it is a little message or a big message
+		if(transaction_type_o && data_queue_r[head_pointer_r][`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT) begin//if WRITE, check if it is a little message or a big message
 			burst_lenght_o = 1;
 		end
 	end//always

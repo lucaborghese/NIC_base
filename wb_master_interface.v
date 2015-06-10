@@ -431,11 +431,14 @@ module wb_master_interface
 	//end FSM
 
 	//query_sender_o, query_recipient_o, transaction_type_o, they are registers
-	always @(posedge clk) begin
-		if(state==IDLE && r_bus_arbitration_i) begin
-			query_sender_o <= data_i[`SRC_BITS_HEAD_FLIT];
-			query_recipient_o <= data_i[`DEST_BITS_HEAD_FLIT];
-			transaction_type_o <= data_i[`CMD_BITS_HEAD_FLIT];
+	always @(*) begin
+		query_sender_o = 0;
+		query_recipient_o = 0;
+		transaction_type_o = 0;
+		if(query_o) begin
+			query_sender_o = address_i[`SRC_BITS_HEAD_FLIT];
+			query_recipient_o = address_i[`DEST_BITS_HEAD_FLIT];
+			transaction_type_o = address_i[`CMD_BITS_HEAD_FLIT];
 		end//if(state==IDLE && r_bus_arbitration_i)
 	end//always
 
