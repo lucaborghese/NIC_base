@@ -27,12 +27,12 @@ module flits_buffer
 	//queue side
 	input																g_pkt_to_msg_i,//grant signal of the next stage of the pipeline
 	output															r_pkt_to_msg_o,//request signal for the next stage of the pipeline
-	output		[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_o,//link used to transfer the packet in the next stage of the pipeline
+	output		[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_o//link used to transfer the packet in the next stage of the pipeline
 																					//the first flit(starting from bit 0) is the head/head_tail,
 																					//the second flit(starting from bit `FLIT_WIDTH) is the first body,
 																					//etc.
-	output		[N_BITS_POINTER-1:0]							head_pointer_o,//tells which flit in out_link_o is the head(_tail)
-	output		[`MAX_PACKET_LENGHT-1:0]					out_sel_o//number of valid information in the out_link, if the i-th bit is high the i-th flit is valid
+//	output		[N_BITS_POINTER-1:0]							head_pointer_o,//tells which flit in out_link_o is the head(_tail)
+//	output		[`MAX_PACKET_LENGHT-1:0]					out_sel_o//number of valid information in the out_link, if the i-th bit is high the i-th flit is valid
 	);
 
 	genvar	i;
@@ -45,13 +45,13 @@ module flits_buffer
 	reg	[`FLIT_WIDTH-1:0]				buffer_r[`MAX_PACKET_LENGHT-1:0];
 	reg	[N_BITS_POINTER-1:0]			head_pointer_r;//pointer to head_flit(if present)
 	reg	[N_BITS_POINTER-1:0]			tail_pointer_r;//next free buffer's slot
-	reg	[`MAX_PACKET_LENGHT-1:0]	sel_r;//if the i-th bit is high r_buffer[i] had valid information 
+//	reg	[`MAX_PACKET_LENGHT-1:0]	sel_r;//if the i-th bit is high r_buffer[i] had valid information
 	reg	[N_BITS_POINTER-1:0]			next_head_pointer;//pointer to head_flit(if present)
 	reg	[N_BITS_POINTER-1:0]			next_tail_pointer;//next free buffer's slot
-	reg	[`MAX_PACKET_LENGHT-1:0]	next_sel;
+//	reg	[`MAX_PACKET_LENGHT-1:0]	next_sel;
 
-	//connect output(out_sel_o and out_link_o) wire WISHBONE side to the respective registers
-	assign out_sel_o = sel_r;
+//	assign out_sel_o = sel_r;
+	//connect output(out_link_o) wire WISHBONE side to the respective registers
 	generate
 		for ( i=0 ; i<`MAX_PACKET_LENGHT ; i=i+1 ) begin : out_link_connection
 			assign out_link_o[(i+1)*`FLIT_WIDTH-1:i*`FLIT_WIDTH] = buffer_r[i];
@@ -164,11 +164,11 @@ module flits_buffer
 	//head_pointer_r, tail_pointer_r and sel_r update
 	always @(posedge clk) begin
 		if(rst) begin//RESET SIGNAL
-			sel_r <= 0;
+//			sel_r <= 0;
 			head_pointer_r <= 0;
 			tail_pointer_r <= 0;
 		end else begin//NO RESET SIGNAL
-			sel_r <= next_sel;
+//			sel_r <= next_sel;
 			head_pointer_r <= next_head_pointer;
 			tail_pointer_r <= next_tail_pointer;
 		end//else if(rst)
@@ -183,15 +183,15 @@ module flits_buffer
 
 	//computation of next_sel, next_head_pointer, next_tail_pointer
 	always @(*) begin
-		next_sel = sel_r;
+//		next_sel = sel_r;
 		next_head_pointer = head_pointer_r;
 		next_tail_pointer = tail_pointer_r;
 		if(clear_buffer) begin
 			next_head_pointer = next_tail_pointer;
-			next_sel = 0;
+//			next_sel = 0;
 		end else begin
 			if(store) begin
-				next_sel = next_sel | ( 1 << tail_pointer_r );
+//				next_sel = next_sel | ( 1 << tail_pointer_r );
 				if(next_tail_pointer<`MAX_PACKET_LENGHT-1) begin
 					next_tail_pointer = next_tail_pointer + 1;
 				end else begin

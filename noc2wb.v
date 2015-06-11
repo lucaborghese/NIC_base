@@ -58,8 +58,8 @@ module noc2wb
 	wire														g_pkt_to_msg_mq_fb;
 	wire														r_pkt_to_msg_fb_mq;
 	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_fb_mq;
-	wire	[N_BITS_POINTER_FLITS_BUFFER-1:0]		head_pointer_fb_mq;
-	wire	[`MAX_PACKET_LENGHT-1:0]					out_sel_fb_mq;
+//	wire	[N_BITS_POINTER_FLITS_BUFFER-1:0]		head_pointer_fb_mq;
+//	wire	[`MAX_PACKET_LENGHT-1:0]					out_sel_fb_mq;
 
 	//signals message_queue - wb_master_interface
 	wire										r_bus_arbitration_mq_wm;
@@ -89,9 +89,9 @@ module noc2wb
 		//queue side
 		.g_pkt_to_msg_i(g_pkt_to_msg_mq_fb),
 		.r_pkt_to_msg_o(r_pkt_to_msg_fb_mq),
-		.out_link_o(out_link_fb_mq),
-		.head_pointer_o(head_pointer_fb_mq),
-		.out_sel_o(out_sel_fb_mq)
+		.out_link_o(out_link_fb_mq)
+//		.head_pointer_o(head_pointer_fb_mq),
+//		.out_sel_o(out_sel_fb_mq)
 		);
 
 	message_queue
@@ -106,7 +106,7 @@ module noc2wb
 
 		//flits_buffer side
 		.in_link_i(out_link_fb_mq),
-		.in_sel_i(out_sel_fb_mq),
+//		.in_sel_i(out_sel_fb_mq),
 		.r_pkt_to_msg_i(r_pkt_to_msg_fb_mq),
 		.g_pkt_to_msg_o(g_pkt_to_msg_mq_fb),
 		//wb_master_interface side

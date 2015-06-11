@@ -23,7 +23,7 @@ module testbench_message_queue
 
 	//input message queue NoC side
 	reg	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	in_link;
-	reg	[`MAX_PACKET_LENGHT-1:0]					in_sel;
+//	reg	[`MAX_PACKET_LENGHT-1:0]					in_sel;
 	reg														r_pkt_to_msg_i;
 
 	//output message queue NoC side
@@ -54,7 +54,7 @@ module testbench_message_queue
 		.clk(clk),
 		.rst(rst),
 		.in_link_i(in_link),
-		.in_sel_i(in_sel),
+//		.in_sel_i(in_sel),
 		.r_pkt_to_msg_i(r_pkt_to_msg_i),
 		.g_pkt_to_msg_o(g_pkt_to_msg_o),
 		.message_transmitted_i(message_transmitted_i),
@@ -142,7 +142,7 @@ module testbench_message_queue
 		rst = 1;
 		r_pkt_to_msg_i = 0;
 		in_link = 0;
-		in_sel = 0;
+//		in_sel = 0;
 		message_transmitted_i = 0;
 		next_data_i = 0;
 		retry_i = 0;
@@ -151,7 +151,7 @@ module testbench_message_queue
 		@(posedge clk);
 		r_pkt_to_msg_i = 1;
 		in_link = 80'h00000000000000000003;
-		in_sel = 5'b00001;
+//		in_sel = 5'b00001;
 		@(posedge clk);
 		@(posedge clk);
 		r_pkt_to_msg_i = 0;

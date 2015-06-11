@@ -30,8 +30,8 @@ module testbench_flits_buffer
 	wire														free_signal;
 	wire														r_packet_to_message;
 	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link;
-	wire	[N_BITS_POINTER-1:0]							head_pointer;
-	wire	[`MAX_PACKET_LENGHT-1:0]					out_sel;
+//	wire	[N_BITS_POINTER-1:0]							head_pointer;
+//	wire	[`MAX_PACKET_LENGHT-1:0]					out_sel;
 	
 	//clock
 	always #5 clk = ~clk;
@@ -51,9 +51,9 @@ module testbench_flits_buffer
 		.free_signal_o(free_signal),
 		.g_pkt_to_msg_i(g_packet_to_message),
 		.r_pkt_to_msg_o(r_packet_to_message),
-		.out_link_o(out_link),
-		.head_pointer_o(head_pointer),
-		.out_sel_o(out_sel)
+		.out_link_o(out_link)
+//		.head_pointer_o(head_pointer),
+//		.out_sel_o(out_sel)
 		);
 
 	initial begin

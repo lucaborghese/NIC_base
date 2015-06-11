@@ -19,7 +19,7 @@ module message_queue
 	
 	//input port side
 	input				[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	in_link_i,//data link from the input buffer
-	input				[`MAX_PACKET_LENGHT-1:0]					in_sel_i,//number of valid information in the in_link, if the i-th bit is high the i-th flit is valid
+//	input				[`MAX_PACKET_LENGHT-1:0]					in_sel_i,//number of valid information in the in_link, if the i-th bit is high the i-th flit is valid
 	input																	r_pkt_to_msg_i,//request of storage from the input buffer
 	output	reg														g_pkt_to_msg_o,//high if the queue can serve the request
 
@@ -41,7 +41,7 @@ module message_queue
 	reg	[`QUEUE_WIDTH-1:0]								valid_bit_r;//if the i-th bit is high head_queue_r[i] and data_queue_r[i] contains a message(at least there is the head_tail flit)
 	reg	[`FLIT_WIDTH-1:0]									head_queue_r[`QUEUE_WIDTH-1:0];
 	reg	[`BUS_DATA_WIDTH*`MAX_BURST_LENGHT-1:0]	data_queue_r[`QUEUE_WIDTH-1:0];
-	reg	[`MAX_PACKET_LENGHT-1:0]						sel_r[`QUEUE_WIDTH-1:0];//if the i-th bit the i-th flit in data_queue_r[k] contains valid information
+//	reg	[`MAX_PACKET_LENGHT-1:0]						sel_r[`QUEUE_WIDTH-1:0];//if the i-th bit the i-th flit in data_queue_r[k] contains valid information
 	reg	[N_BITS_POINTER-1:0]								head_pointer_r;//next message that must be sent over WISHBONE
 	reg	[N_BITS_POINTER-1:0]								tail_pointer_r;//next free slot in queue
 
@@ -73,7 +73,7 @@ module message_queue
 			if(g_pkt_to_msg_o) begin
 				head_queue_r[tail_pointer_r] <= in_link_i[`FLIT_WIDTH-1:0];//storing head/head_tail flit
 				data_queue_r[tail_pointer_r] <= in_link_i[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0];//storing data flit
-				sel_r[tail_pointer_r] <= in_sel_i[`MAX_PACKET_LENGHT-1:0];
+//				sel_r[tail_pointer_r] <= in_sel_i[`MAX_PACKET_LENGHT-1:0];
 				if(tail_pointer_r==`QUEUE_WIDTH-1) begin//update tail_pointer_r
 					tail_pointer_r <= 0;
 				end else begin
