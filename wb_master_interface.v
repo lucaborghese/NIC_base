@@ -39,12 +39,12 @@ module wb_master_interface
 	output	reg	[`N_BIT_CMD_HEAD_FLIT-1:0]					transaction_type_o,
 
 	//wb_slave_interface side
-	output	reg														performing_read_o,//unused
+//	output	reg														performing_read_o,//unused
 
 	//WISHBONE BUS signals
 //	input																	CLK_I,
 //	input																	RST_I,
-	input				[`BUS_DATA_WIDTH-1:0]						DAT_I,//can be eliminated
+//	input				[`BUS_DATA_WIDTH-1:0]						DAT_I,//can be eliminated
 	input																	ACK_I,
 	input																	RTY_I,
 	input																	ERR_I,
@@ -157,7 +157,7 @@ module wb_master_interface
 				increment_n_of_chunk = 0;
 				pending_transaction_executed_o = 0;
 				ACK_O = 0;
-				performing_read_o = 0;
+//				performing_read_o = 0;
 				if(r_bus_arbitration_i) begin
 					query_o = 1;
 					if(is_a_pending_transaction_i) begin
@@ -188,7 +188,7 @@ module wb_master_interface
 					STB_O = 1;
 					increment_n_of_chunk = 1;
 					if(transaction_type_i) begin//WRITE transaction
-						performing_read_o = 0;
+//						performing_read_o = 0;
 						if(burst_lenght_i>1) begin
 							next_state = WRITE_CYCLE;
 							next_data_o = 1;
@@ -197,7 +197,7 @@ module wb_master_interface
 							next_data_o = 0;
 						end//else if(burst_lenght)
 					end else begin//READ transaction
-						performing_read_o = 1;
+//						performing_read_o = 1;
 						if(burst_lenght_i>1) begin
 							next_state = READ_CYCLE;
 							next_data_o = 1;
@@ -211,12 +211,12 @@ module wb_master_interface
 					STB_O = 0;
 					increment_n_of_chunk = 0;
 					next_data_o = 0;
-					performing_read_o = 0;
+//					performing_read_o = 0;
 				end//else if
 			end//REQUEST_BUS
 
 			READ_CYCLE: begin
-				performing_read_o = 1;
+//				performing_read_o = 1;
 				CYC_O = 1;
 				STB_O = 1;
 				rst_n_of_ack = 0;
@@ -249,7 +249,7 @@ module wb_master_interface
 			end//READ_CYCLE_TRANSMISSION
 
 			READ_CYCLE_ACK_WAIT: begin
-				performing_read_o = 1;
+//				performing_read_o = 1;
 				CYC_O = 1;
 				STB_O = 0;
 				next_data_o = 0;
@@ -277,7 +277,7 @@ module wb_master_interface
 			end//READ_CYCLE_ACK_WAIT
 
 			READ_CYCLE_END: begin//DA DEFINIRE L'INTERFACCIA CON LA FIFO PER ORA CANCELLO IL MESSAGGIO RICEVUTO E BASTA
-				performing_read_o = 0;
+//				performing_read_o = 0;
 				next_state = IDLE;
 				CYC_O = 0;
 				STB_O = 0;
@@ -294,7 +294,7 @@ module wb_master_interface
 			end//READ_CYCLE_END_REQUIRE_FIFO
 
 			WRITE_CYCLE: begin
-				performing_read_o = 0;
+//				performing_read_o = 0;
 				CYC_O = 1;
 				STB_O = 1;
 				rst_n_of_ack = 0;
@@ -327,7 +327,7 @@ module wb_master_interface
 			end//WRITE_CYCLE_TRANSMISSION
 
 			WRITE_CYCLE_ACK_WAIT: begin
-				performing_read_o = 0;
+//				performing_read_o = 0;
 				CYC_O = 1;
 				STB_O = 0;
 				next_data_o = 0;
@@ -355,7 +355,7 @@ module wb_master_interface
 			end//WRITE_CYCLE_ACK_WAIT
 
 			WRITE_CYCLE_END: begin
-				performing_read_o = 0;
+//				performing_read_o = 0;
 				next_state = IDLE;
 				CYC_O = 0;
 				STB_O = 0;
@@ -372,7 +372,7 @@ module wb_master_interface
 			end//WRITE_CYCLE_END
 
 			REPLY_PENDING_TRANSACTION: begin
-				performing_read_o = 0;
+//				performing_read_o = 0;
 				retry_o = 0;
 				CYC_O = 0;
 				STB_O = 0;
@@ -402,7 +402,7 @@ module wb_master_interface
 			end//REPLY_PENDING_TRANSACTION
 
 			default: begin
-				performing_read_o = 0;
+//				performing_read_o = 0;
 				next_state = IDLE;
 				next_data_o = 0;
 				message_transmitted_o = 0;
