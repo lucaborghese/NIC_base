@@ -187,7 +187,9 @@ module flits_buffer
 		next_head_pointer = head_pointer_r;
 		next_tail_pointer = tail_pointer_r;
 		if(clear_buffer) begin
-			next_head_pointer = next_tail_pointer;
+//			next_head_pointer = next_tail_pointer;
+			next_head_pointer = 0;
+			next_tail_pointer = 0;
 //			next_sel = 0;
 		end else begin
 			if(store) begin
