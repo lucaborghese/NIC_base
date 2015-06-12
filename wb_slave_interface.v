@@ -69,6 +69,8 @@ module wb_slave_interface
 	output	reg															is_valid_o
 	);
 
+	`include "NIC_utils.vh"
+
 	assign RTY_O = 0;
 	assign ERR_O = 0;
 

@@ -31,6 +31,8 @@ module message_buffer
 	output															is_valid_o
 	);
 
+	`include "NIC_utils.vh"
+
 	//buffer
 	reg	[`BUS_ADDRESS_WIDTH-1:0]	address_buffer_r;
 	reg	[`BUS_DATA_WIDTH-1:0]		data_buffer_r[`MAX_BURST_LENGHT-1:0];

@@ -35,6 +35,8 @@ module message_queue
 	input																	message_transmitted_i//if high the message pointed by head_pointer has been transmitted over the bus
 	);
 
+	`include "NIC_utils.vh"
+
 	genvar i;
 
 	//queue registers(FIFO)

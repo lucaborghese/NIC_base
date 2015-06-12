@@ -22,6 +22,8 @@ module va_vn_N_to_1
 	output	reg	[N_OF_REQUEST*N_OF_VC-1:0]	g_vc_o
 	);
 
+	`include "NIC_utils.vh"
+
 	reg	[N_BITS_N_OF_REQUEST-1:0]	last_served_request_r;
 	reg	[N_BITS_N_OF_REQUEST-1:0]	current_served_request;
 

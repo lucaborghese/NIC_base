@@ -30,6 +30,8 @@ module on_the_fly_node2noc
 	output	reg														is_a_pending_transaction_o//query reply, combinatorial
 	);
 
+	`include "NIC_utils.vh"
+
 	//table
 	reg	[`TABLE_PENDING_NODE2NOC_WIDTH-1:0]		valid_bit_r;
 	reg	[`N_BIT_SRC_HEAD_FLIT-1:0]					sender_r[`TABLE_PENDING_NODE2NOC_WIDTH-1:0];
