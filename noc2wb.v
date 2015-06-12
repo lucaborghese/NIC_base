@@ -7,7 +7,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 `include "NIC-defines.v"
-`include "flits_buffer.v"
+`include "input_port.v"
 `include "message_queue.v"
 `include "wb_master_interface.v"
 
@@ -15,7 +15,9 @@ module noc2wb
 	#(
 	parameter	N_BITS_POINTER_FLITS_BUFFER	=	5,//clog2(`MAX_PACKET_LENGHT)
 	parameter	N_BITS_POINTER_MESSAGE_QUEUE	=	5,//clog2(`QUEUE_WIDTH)
-	parameter	N_BITS_BURST_LENGHT				=	5//clog2(`MAX_BURST_LENGHT + 1)
+	parameter	N_BITS_BURST_LENGHT				=	5,//clog2(`MAX_BURST_LENGHT + 1)
+	parameter	N_TOT_OF_VC							=	4,
+	parameter	N_BITS_POINTER_INPUT_PORT		=	3//clog2(N_TOT_OF_VC)
 	)
 	(
 	input	clk,
@@ -24,8 +26,8 @@ module noc2wb
 	//Router side
 	input			[`FLIT_WIDTH-1:0]								in_link_i,//data link from NoC's router
 	input																is_valid_i,//high if there is a valid flit in in_link_i
-	output															credit_signal_o,//high if one flit buffer is emptied in this cycle, low otherwise. In this implementation it is not well used, it works only if buffer_r can contain an entire packet
-	output															free_signal_o,//high if buffer_r change state from busy to idle
+	output		[N_TOT_OF_VC-1:0]								credit_signal_o,//high if one flit buffer is emptied in this cycle, low otherwise. In this implementation it is not well used, it works only if buffer_r can contain an entire packet
+	output		[N_TOT_OF_VC-1:0]								free_signal_o,//high if buffer_r change state from busy to idle
 
 	//on the fly table side
 	input																is_a_pending_transaction_i,//reply from the table, high if the message is a reply for a node
@@ -55,11 +57,11 @@ module noc2wb
 	);
 
 	//signals flits_buffer - message_queue
-	wire														g_pkt_to_msg_mq_fb;
-	wire														r_pkt_to_msg_fb_mq;
-	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_fb_mq;
-//	wire	[N_BITS_POINTER_FLITS_BUFFER-1:0]		head_pointer_fb_mq;
-//	wire	[`MAX_PACKET_LENGHT-1:0]					out_sel_fb_mq;
+	wire														g_pkt_to_msg_mq_ip;
+	wire														r_pkt_to_msg_ip_mq;
+	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_ip_mq;
+//	wire	[N_BITS_POINTER_FLITS_BUFFER-1:0]		head_pointer_ip_mq;
+//	wire	[`MAX_PACKET_LENGHT-1:0]					out_sel_ip_mq;
 
 	//signals message_queue - wb_master_interface
 	wire										r_bus_arbitration_mq_wm;
@@ -72,11 +74,13 @@ module noc2wb
 	wire										retry_wm_mq;
 	wire										message_transmitted_wm_mq;
 
-	flits_buffer
+	input_port
 		#(
-		.N_BITS_POINTER(N_BITS_POINTER_FLITS_BUFFER)
+		.N_TOT_OF_VC(N_TOT_OF_VC),
+		.N_BITS_POINTER_FLITS_BUFFER(N_BITS_POINTER_FLITS_BUFFER),
+		.N_BITS_POINTER(N_BITS_POINTER_INPUT_PORT)
 		)
-		flits_buffer
+		input_port
 		(
 		.clk(clk),
 		.rst(rst),
@@ -87,11 +91,11 @@ module noc2wb
 		.credit_signal_o(credit_signal_o),
 		.free_signal_o(free_signal_o),
 		//queue side
-		.g_pkt_to_msg_i(g_pkt_to_msg_mq_fb),
-		.r_pkt_to_msg_o(r_pkt_to_msg_fb_mq),
-		.out_link_o(out_link_fb_mq)
-//		.head_pointer_o(head_pointer_fb_mq),
-//		.out_sel_o(out_sel_fb_mq)
+		.g_pkt_to_msg_i(g_pkt_to_msg_mq_ip),
+		.r_pkt_to_msg_o(r_pkt_to_msg_ip_mq),
+		.out_link_o(out_link_ip_mq)
+//		.head_pointer_o(head_pointer_ip_mq),
+//		.out_sel_o(out_sel_ip_mq)
 		);
 
 	message_queue
@@ -105,10 +109,10 @@ module noc2wb
 		.rst(rst),
 
 		//flits_buffer side
-		.in_link_i(out_link_fb_mq),
-//		.in_sel_i(out_sel_fb_mq),
-		.r_pkt_to_msg_i(r_pkt_to_msg_fb_mq),
-		.g_pkt_to_msg_o(g_pkt_to_msg_mq_fb),
+		.in_link_i(out_link_ip_mq),
+//		.in_sel_i(out_sel_ip_mq),
+		.r_pkt_to_msg_i(r_pkt_to_msg_ip_mq),
+		.g_pkt_to_msg_o(g_pkt_to_msg_mq_ip),
 		//wb_master_interface side
 		.r_bus_arbitration_o(r_bus_arbitration_mq_wm),
 		.address_o(address_mq_wm),

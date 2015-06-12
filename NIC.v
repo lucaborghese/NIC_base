@@ -19,7 +19,8 @@ module NIC
 	parameter N_BITS_PACKET_LENGHT			=	clog2(`MAX_PACKET_LENGHT),
 	parameter N_BITS_VNET_ID					=	clog2(`N_OF_VN),
 	parameter N_BITS_CREDIT						=	clog2(`MAX_CREDIT+1),
-	parameter N_BITS_POINTER_MESSAGE_QUEUE	=	clog2(`QUEUE_WIDTH)
+	parameter N_BITS_POINTER_MESSAGE_QUEUE	=	clog2(`QUEUE_WIDTH),
+	parameter N_BITS_POINTER_INPUT_PORT		=	clog2(N_TOT_OF_VC)
 	)
 	(
 	input	clk,
@@ -33,8 +34,8 @@ module NIC
 	//NIC => router
 	output		[`FLIT_WIDTH-1:0]					out_link_o,
 	output												is_valid_o,
-	output												credit_signal_o,
-	output												free_signal_o,
+	output		[N_TOT_OF_VC-1:0]					credit_signal_o,
+	output		[N_TOT_OF_VC-1:0]					free_signal_o,
 	//NIC(MASTER) => NODE(SLAVE)
 	input			[`BUS_DATA_WIDTH-1:0]			DAT_NIC_NODE_I,
 	input													ACK_NIC_NODE_I,
@@ -177,7 +178,9 @@ module NIC
 		#(
 		.N_BITS_POINTER_FLITS_BUFFER(N_BITS_PACKET_LENGHT),
 		.N_BITS_POINTER_MESSAGE_QUEUE(N_BITS_POINTER_MESSAGE_QUEUE),
-		.N_BITS_BURST_LENGHT(N_BITS_BURST_LENGHT)
+		.N_BITS_BURST_LENGHT(N_BITS_BURST_LENGHT),
+		.N_TOT_OF_VC(N_TOT_OF_VC),
+		.N_BITS_POINTER_INPUT_PORT(N_BITS_POINTER_INPUT_PORT)
 		)
 		noc2wb
 		(

@@ -29,8 +29,8 @@ module testbench_nic
 	//NIC => router
 	wire	[`FLIT_WIDTH-1:0]	out_link_o;
 	wire							is_valid_o;
-	wire							credit_signal_o;
-	wire							free_signal_o;
+	wire	[N_TOT_OF_VC-1:0]	credit_signal_o;
+	wire	[N_TOT_OF_VC-1:0]	free_signal_o;
 
 	//NIC(MASTER) => NODE(SLAVE)
 	reg	[`BUS_DATA_WIDTH-1:0]		DAT_NIC_NODE_I;

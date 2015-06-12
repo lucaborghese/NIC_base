@@ -23,7 +23,9 @@
 `define	N_BITS_FLIT_TYPE	2//number of wire where can be found the flit_type information
 
 `define	FLIT_VNET_ID_BITS					2
-`define	FLIT_VC_ID_BITS					9:4
+`define	N_BITS_FLIT_VNET_ID				1
+`define	FLIT_VC_ID_BITS					3
+`define	N_BITS_FLIT_VC_ID					1
 //HEAD(TAIL) FLIT INFORMATION
 `define	ROUTING_INFORMATION_BITS		19:10
 `define	N_BITS_ROUTING_INFORMATION		10
