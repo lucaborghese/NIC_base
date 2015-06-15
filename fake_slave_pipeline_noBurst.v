@@ -16,8 +16,7 @@ module fake_slave_pipeline_noBurst
 	parameter insert_stall							=	0,//1: insert random stall, 0: no stall
 	parameter n_wait_cycle_between_read_ack	=	0,
 	parameter n_wait_cycle_between_write_ack	=	0,
-	parameter N_BODY_FLIT							=	`MAX_PACKET_LENGHT-2,
-	parameter N_BITS_VNET_ID						=	2
+	parameter N_BODY_FLIT							=	`MAX_PACKET_LENGHT-2
 	)
 	(
 	input																	clk,
@@ -53,10 +52,10 @@ module fake_slave_pipeline_noBurst
 	integer	waiting_between_write;
 
 	//reply for a read request
-	reg [`FLIT_WIDTH-`N_BITS_FLIT_TYPE-N_BITS_VNET_ID-1:0] random_chunk;
+	reg [`FLIT_WIDTH-`N_BITS_FLIT_TYPE-`N_BITS_FLIT_VNET_ID-1:0] random_chunk;
 	reg [`MAX_BURST_LENGHT*`BUS_DATA_WIDTH-1:0] read_message_reply;
 	wire [`BUS_DATA_WIDTH-1:0] reply_read[`MAX_BURST_LENGHT-1:0];
-	reg [N_BITS_VNET_ID-1:0] vnet;
+	reg [`N_BITS_FLIT_VNET_ID-1:0] vnet;
 	generate
 		for( i=0; i<`MAX_BURST_LENGHT ; i=i+1 ) begin : reply_generation
 			assign reply_read[i] = read_message_reply[(i+1)*`BUS_DATA_WIDTH-1:i*`BUS_DATA_WIDTH];
@@ -163,11 +162,11 @@ module fake_slave_pipeline_noBurst
 
 	//tolgo il gnt
 	always @(negedge CYC_I) begin
-		gnt_wb_o = 0;
-		if(WE_I) begin
+		gnt_wb_o <= 0;
+		if(address_r[`CMD_BITS_HEAD_FLIT]==0) begin
 			$display ("[FAKE_WB_SLAVE] %g Received address %h and data %h from source %d for %d with command %b",$time,address_r,data_r,address_r[`SRC_BITS_HEAD_FLIT],address_r[`DEST_BITS_HEAD_FLIT],address_r[`CMD_BITS_HEAD_FLIT]);
 		end else begin
-			$display ("[FAKE_WB_SLAVE] %g Received read request from %d to %d with command %b",$time,address_r[`SRC_BITS_HEAD_FLIT],address_r[`DEST_BITS_HEAD_FLIT],address_r[`CMD_BITS_HEAD_FLIT]);
+			$display ("[FAKE_WB_SLAVE] %g Received read request %h from %d to %d with command %b",$time,address_r,address_r[`SRC_BITS_HEAD_FLIT],address_r[`DEST_BITS_HEAD_FLIT],address_r[`CMD_BITS_HEAD_FLIT]);
 			$display ("[FAKE_WB_SLAVE] %g Injected reply data %h from source %d for %d with command %b",$time,reply_read,reply_read[0][`SRC_BITS_HEAD_FLIT],reply_read[0][`DEST_BITS_HEAD_FLIT],reply_read[0][`CMD_BITS_HEAD_FLIT]);
 		end
 //		if(count_n_of_ack<count_n_of_reply) begin
