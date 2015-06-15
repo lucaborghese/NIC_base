@@ -54,7 +54,7 @@ module on_the_fly_node2noc
 		if(query_i) begin
 			for( k0=0 ; k0<`TABLE_PENDING_NODE2NOC_WIDTH ; k0=k0+1 ) begin
 				if(valid_bit_r[k0]) begin
-					if(query_sender_i==sender_r[k0] && query_recipient_i==recipient_r[k0] && query_transaction_type_i==transaction_type_r[k0]) begin
+					if(query_sender_i==sender_r[k0] && query_recipient_i==recipient_r[k0] /*&& query_transaction_type_i==transaction_type_r[k0]*/) begin
 						query_result_pointer = k0;
 						is_a_pending_transaction_o = 1;
 					end
