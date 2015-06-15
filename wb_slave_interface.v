@@ -156,12 +156,15 @@ module wb_slave_interface
 				new_pending_transaction_o = 0;
 				reply_for_wb_master_interface = 0;
 				if(is_valid_message) begin
-					next_state = IDLE;
 					clear_buffer = 1;
 				end else begin
-					next_state = WB_CYCLE_WRITE;
 					clear_buffer = 0;
 				end//else if(is_valid_message)
+				if(CYC_I) begin//control if the cycle is done
+					next_state = WB_CYCLE_WRITE;
+				end else begin
+					next_state = IDLE;
+				end
 			end//WB_CYCLE_WRITE
 			WB_CYCLE_READ: begin
 				STALL_O = 0;
