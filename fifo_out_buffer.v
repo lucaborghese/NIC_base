@@ -44,6 +44,8 @@ module fifo_out_buffer
 	output																free_slot_o//high if this buffer is free
 	);
 
+	`include "NIC_utils.vh"
+
 	genvar i;
 
 	//control register
@@ -148,6 +150,7 @@ module fifo_out_buffer
 	integer k0;
 	always @(*) begin
 		flit_o = flits_from_buffer[transmitting_flit_pointer_r];
+		flit_o[`FLIT_VC_ID_BITS] = ff1(vc_id_r,N_BITS_VC_ID)%`N_OF_VN;
 	end//always
 
 	//FSM
