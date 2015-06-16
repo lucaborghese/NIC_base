@@ -15,7 +15,7 @@ module NIC
 	parameter N_TOT_OF_VC						=	`N_OF_VC*`N_OF_VN,
 	parameter N_BITS_POINTER_TABLE			=	clog2(`TABLE_PENDING_NODE2NOC_WIDTH),
 	parameter N_BITS_FIFO_OUT_BUFFER_ID		=	clog2(`N_FIFO_OUT_BUFFER),
-	parameter N_BITS_BURST_LENGHT				=	clog2(`MAX_BURST_LENGHT),
+	parameter N_BITS_BURST_LENGHT				=	clog2(`MAX_BURST_LENGHT+1),
 	parameter N_BITS_PACKET_LENGHT			=	clog2(`MAX_PACKET_LENGHT),
 	parameter N_BITS_VNET_ID					=	clog2(`N_OF_VN),
 	parameter N_BITS_CREDIT						=	clog2(`MAX_CREDIT+1),
