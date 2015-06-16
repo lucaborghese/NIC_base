@@ -32,6 +32,8 @@ module fake_slave_pipeline_noBurst
 	input				[`BUS_ADDRESS_WIDTH-1:0]					ADR_I,
 	input				[`BUS_DATA_WIDTH-1:0]						DAT_I,
 	input				[(`BUS_DATA_WIDTH/`GRANULARITY)-1:0]	SEL_I,
+	input				[`BUS_TGA_WIDTH-1:0]							TGA_I,
+	input				[`BUS_TGC_WIDTH-1:0]							TGC_I,
 	input				[2:0]												CTI_I,
 
 	//output on the WISHBONE
@@ -65,6 +67,8 @@ module fake_slave_pipeline_noBurst
 	//storing data of a write
 	reg [`BUS_DATA_WIDTH-1:0] data_r[`MAX_BURST_LENGHT-1:0];
 	reg [`BUS_ADDRESS_WIDTH-1:0] address_r;
+	reg [`BUS_TGA_WIDTH-1:0] tga_r;
+	reg [`BUS_TGC_WIDTH-1:0] tgc_r;
 
 	initial begin
 		gnt_wb_o = 0;
@@ -137,8 +141,10 @@ module fake_slave_pipeline_noBurst
 			if(STB_I && !STALL_O) begin
 				if(count_n_of_reply==0) begin//storing the address only if it is the first chunk
 					address_r = ADR_I;
+					tga_r = TGA_I;
+					tgc_r = TGC_I;
 					read_message_reply[`SRC_BITS_HEAD_FLIT] = address_r[`DEST_BITS_HEAD_FLIT];
-					read_message_reply[`DEST_BITS_HEAD_FLIT] = address_r[`SRC_BITS_HEAD_FLIT];
+					read_message_reply[`DEST_BITS_HEAD_FLIT] = TGA_I;
 //					read_message_reply[`CMD_BITS_HEAD_FLIT] = 0;
 				end
 				if(WE_I) begin//if write store data
@@ -164,9 +170,9 @@ module fake_slave_pipeline_noBurst
 	always @(negedge CYC_I) begin
 		gnt_wb_o <= 0;
 		if(address_r[`CMD_BITS_HEAD_FLIT]==0) begin
-			$display ("[FAKE_WB_SLAVE] %g Received address %h and data %h from source %d for %d with command %b",$time,address_r,data_r,address_r[`SRC_BITS_HEAD_FLIT],address_r[`DEST_BITS_HEAD_FLIT],address_r[`CMD_BITS_HEAD_FLIT]);
+			$display ("[FAKE_WB_SLAVE] %g Received address %h and data %h from source %d for %d with command %b",$time,address_r,data_r,tga_r,address_r[`DEST_BITS_HEAD_FLIT],tgc_r);
 		end else begin
-			$display ("[FAKE_WB_SLAVE] %g Received read request %h from %d to %d with command %b",$time,address_r,address_r[`SRC_BITS_HEAD_FLIT],address_r[`DEST_BITS_HEAD_FLIT],address_r[`CMD_BITS_HEAD_FLIT]);
+			$display ("[FAKE_WB_SLAVE] %g Received read request %h from %d to %d with command %b",$time,address_r,tga_r,address_r[`DEST_BITS_HEAD_FLIT],tgc_r);
 			$display ("[FAKE_WB_SLAVE] %g Injected reply data %h from source %d for %d with command %b",$time,reply_read,reply_read[0][`SRC_BITS_HEAD_FLIT],reply_read[0][`DEST_BITS_HEAD_FLIT],reply_read[0][`CMD_BITS_HEAD_FLIT]);
 		end
 //		if(count_n_of_ack<count_n_of_reply) begin

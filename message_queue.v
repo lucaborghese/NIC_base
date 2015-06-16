@@ -28,6 +28,8 @@ module message_queue
 	output			[`BUS_ADDRESS_WIDTH-1:0]					address_o,//if r_bus_arbitration_o is high this signal contains the address that must be trasmitted on the WISHBONE
 	output			[`BUS_DATA_WIDTH-1:0]						data_o,//like above, but the signal contains the data
 	output	reg	[`BUS_SEL_WIDTH-1:0]							sel_o,//like above, but contains the SEL_O signal
+	output			[`BUS_TGA_WIDTH-1:0]							tga_o,//it contain the src of the transaction transmitted over the bus
+	output			[`BUS_TGC_WIDTH-1:0]							tgc_o,//it contain the cmd of the transaction transmitted over the bus
 	output																transaction_type_o,//like above, but this signal contains the WE_O signal of WISHBONE
 	output	reg	[N_BITS_BURST_LENGHT-1:0]					burst_lenght_o,//number of WISHBONE 'cycle' to transmit the message
 	input																	next_data_i,//if high, the next chunk of the message must be load on data_o address_o
@@ -161,8 +163,10 @@ module message_queue
 	endgenerate
 	assign data_o = current_message[current_message_chunk_pointer_r];
 
-	//computation of address_o
-	assign address_o = head_queue_r[head_pointer_r];
+	//computation of address_o, tga_o, tgc_o
+	assign address_o = head_queue_r[head_pointer_r][`HEAD_FLIT_ADDRESS_BITS];
+	assign tga_o = head_queue_r[head_pointer_r][`SRC_BITS_HEAD_FLIT];
+	assign tgc_o = head_queue_r[head_pointer_r][`CMD_BITS_HEAD_FLIT];
 
 	//computation of sel_o DA FINIRE per ora sempre tutti 1
 	always @(*) begin

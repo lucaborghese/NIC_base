@@ -49,6 +49,8 @@ module noc2wb
 	output		[`BUS_ADDRESS_WIDTH-1:0]					ADR_O,
 	output		[`BUS_DATA_WIDTH-1:0]						DAT_O,
 	output		[(`BUS_DATA_WIDTH/`GRANULARITY)-1:0]	SEL_O,
+	output		[`BUS_TGA_WIDTH-1:0]							TGA_O,
+	output		[`BUS_TGC_WIDTH-1:0]							TGC_O,
 	output		[2:0]												CTI_O,
 	output															ACK_O,//this isn't a signal of the master, it is used in the pipeline implementation of this NiC when this module reply for the wb_slave_interface
 
@@ -68,6 +70,8 @@ module noc2wb
 	wire	[`BUS_ADDRESS_WIDTH-1:0]	address_mq_wm;
 	wire	[`BUS_DATA_WIDTH-1:0]		data_mq_wm;
 	wire	[`BUS_SEL_WIDTH-1:0]			sel_mq_wm;
+	wire	[`BUS_TGA_WIDTH-1:0]			tga_mq_wm;
+	wire	[`BUS_TGC_WIDTH-1:0]			tgc_mq_wm;
 	wire										transaction_type_mq_wm;
 	wire	[N_BITS_BURST_LENGHT-1:0]	burst_lenght_mq_wm;
 	wire										next_data_wm_mq;
@@ -118,6 +122,8 @@ module noc2wb
 		.address_o(address_mq_wm),
 		.data_o(data_mq_wm),
 		.sel_o(sel_mq_wm),
+		.tga_o(tga_mq_wm),
+		.tgc_o(tgc_mq_wm),
 		.transaction_type_o(transaction_type_mq_wm),
 		.burst_lenght_o(burst_lenght_mq_wm),
 		.next_data_i(next_data_wm_mq),
@@ -139,6 +145,8 @@ module noc2wb
 		.address_i(address_mq_wm),
 		.data_i(data_mq_wm),
 		.sel_i(sel_mq_wm),
+		.tga_i(tga_mq_wm),
+		.tgc_i(tgc_mq_wm),
 		.transaction_type_i(transaction_type_mq_wm),
 		.burst_lenght_i(burst_lenght_mq_wm),
 		.next_data_o(next_data_wm_mq),
@@ -162,6 +170,8 @@ module noc2wb
 		.ADR_O(ADR_O),
 		.DAT_O(DAT_O),
 		.SEL_O(SEL_O),
+		.TGA_O(TGA_O),
+		.TGC_O(TGC_O),
 		.CTI_O(CTI_O),
 		.ACK_O(ACK_O),
 		//arbiter side

@@ -25,6 +25,8 @@ module fake_master
 	output											WE_O,
 	output		[`BUS_DATA_WIDTH-1:0]		DAT_O,
 	output		[`BUS_SEL_WIDTH-1:0]			SEL_O,
+	output		[`BUS_TGA_WIDTH-1:0]			TGA_O,
+	output		[`BUS_TGC_WIDTH-1:0]			TGC_O,
 	output		[`BUS_ADDRESS_WIDTH-1:0]	ADR_O,
 	output		[2:0]								CTI_O,
 	input			[`BUS_DATA_WIDTH-1:0]		DAT_I,
@@ -43,6 +45,8 @@ module fake_master
 	assign SEL_O = ~0;
 	assign WE_O = ~read;
 	assign ADR_O = address;
+	assign TGA_O = address[`SRC_BITS_HEAD_FLIT];
+	assign TGC_O = address[`CMD_BITS_HEAD_FLIT];
 	assign DAT_O = data[count_n_of_wb_cycle];
 	assign CTI_O = 0;
 
@@ -103,6 +107,7 @@ module fake_master
 					end
 					default: begin//big write
 						message = { random_chunk , vnet, `TAIL_FLIT , {N_BODY_FLIT{random_chunk , vnet , `BODY_FLIT}} , random_chunk , vnet , `HEAD_FLIT };
+						message[`CMD_BITS_HEAD_FLIT] = 0;//write if cmd!=0
 					end
 				endcase
 			end

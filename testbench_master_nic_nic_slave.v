@@ -15,7 +15,7 @@ module testbench_master_nic_nic_slave
 	#(
 	parameter N_TOT_OF_VC							=	`N_OF_VN*`N_OF_VC,
 	//parameter for fake_master
-	parameter MORE_READ								=	1,//0 more write, 1 more read(see also HOW_MANY_MORE_READ/WRITE)
+	parameter MORE_READ								=	0,//0 more write, 1 more read(see also HOW_MANY_MORE_READ/WRITE)
 	parameter MORE_SMALL_WRITE						=	0,//0 more big write, 1 more small write(see also HOW_MANY_MORE_SMALL)
 	parameter HOW_MANY_MORE_READ					=	0,//greater this number greater the probability to have more read/write than write/read
 	parameter HOW_MANY_MORE_SMALL					=	0,//greater this number greater the probability to have more small/big write than big/small
@@ -42,6 +42,8 @@ module testbench_master_nic_nic_slave
 	wire										WE_O_MASTER_NIC;
 	wire	[`BUS_DATA_WIDTH-1:0]		DAT_O_MASTER_NIC;
 	wire	[`BUS_SEL_WIDTH-1:0]			SEL_O_MASTER_NIC;
+	wire	[`BUS_TGA_WIDTH-1:0]			TGA_O_MASTER_NIC;
+	wire	[`BUS_TGC_WIDTH-1:0]			TGC_O_MASTER_NIC;
 	wire	[`BUS_ADDRESS_WIDTH-1:0]	ADR_O_MASTER_NIC;
 	wire	[2:0]								CTI_O_MASTER_NIC;
 	wire	[`BUS_DATA_WIDTH-1:0]		DAT_I_MASTER_NIC;
@@ -64,6 +66,8 @@ module testbench_master_nic_nic_slave
 	wire	[`BUS_ADDRESS_WIDTH-1:0]	ADR_NIC_MASTER_NODE_O;
 	wire	[`BUS_DATA_WIDTH-1:0]		DAT_NIC_MASTER_NODE_O;
 	wire	[`BUS_SEL_WIDTH-1:0]			SEL_NIC_MASTER_NODE_O;
+	wire	[`BUS_TGA_WIDTH-1:0]			TGA_NIC_MASTER_NODE_O;
+	wire	[`BUS_TGC_WIDTH-1:0]			TGC_NIC_MASTER_NODE_O;
 	wire	[2:0]								CTI_NIC_MASTER_NODE_O;
 	reg										gnt_wb_i_for_nic_master;
 
@@ -89,6 +93,8 @@ module testbench_master_nic_nic_slave
 	wire	[`BUS_ADDRESS_WIDTH-1:0]	ADR_I_SLAVE_NIC;
 	wire	[`BUS_DATA_WIDTH-1:0]		DAT_I_SLAVE_NIC;
 	wire	[`BUS_SEL_WIDTH-1:0]			SEL_I_SLAVE_NIC;
+	wire	[`BUS_TGA_WIDTH-1:0]			TGA_I_SLAVE_NIC;
+	wire	[`BUS_TGC_WIDTH-1:0]			TGC_I_SLAVE_NIC;
 	wire	[2:0]								CTI_I_SLAVE_NIC;
 	wire	[`BUS_DATA_WIDTH-1:0]		DAT_O_SLAVE_NIC;
 	wire										ACK_O_SLAVE_NIC;
@@ -104,6 +110,8 @@ module testbench_master_nic_nic_slave
 	reg	[`BUS_DATA_WIDTH-1:0]		DAT_NODE_NIC_I;
 	reg	[`BUS_ADDRESS_WIDTH-1:0]	ADR_NODE_NIC_I;
 	reg	[`BUS_SEL_WIDTH-1:0]			SEL_NODE_NIC_I;
+	reg	[`BUS_TGA_WIDTH-1:0]			TGA_NODE_NIC_I;
+	reg	[`BUS_TGC_WIDTH-1:0]			TGC_NODE_NIC_I;
 	wire	[`BUS_DATA_WIDTH-1:0]		DAT_NODE_NIC_O;
 	wire										RTY_NODE_NIC_O;
 	wire										ERR_NODE_NIC_O;
@@ -133,6 +141,8 @@ module testbench_master_nic_nic_slave
 		.WE_O(WE_O_MASTER_NIC),
 		.DAT_O(DAT_O_MASTER_NIC),
 		.SEL_O(SEL_O_MASTER_NIC),
+		.TGA_O(TGA_O_MASTER_NIC),
+		.TGC_O(TGC_O_MASTER_NIC),
 		.ADR_O(ADR_O_MASTER_NIC),
 		.CTI_O(CTI_O_MASTER_NIC),
 		.DAT_I(DAT_I_MASTER_NIC),
@@ -171,6 +181,8 @@ module testbench_master_nic_nic_slave
 		.ADR_NIC_NODE_O(ADR_NIC_MASTER_NODE_O),
 		.DAT_NIC_NODE_O(DAT_NIC_MASTER_NODE_O),
 		.SEL_NIC_NODE_O(SEL_NIC_MASTER_NODE_O),
+		.TGA_NIC_NODE_O(TGA_NIC_MASTER_NODE_O),
+		.TGC_NIC_NODE_O(TGC_NIC_MASTER_NODE_O),
 		.CTI_NIC_NODE_O(CTI_NIC_MASTER_NODE_O),
 		//NODE(MASTER) => NIC(SLAVE)
 		.CYC_NODE_NIC_I(CYC_O_MASTER_NIC),
@@ -180,6 +192,8 @@ module testbench_master_nic_nic_slave
 		.DAT_NODE_NIC_I(DAT_O_MASTER_NIC),
 		.ADR_NODE_NIC_I(ADR_O_MASTER_NIC),
 		.SEL_NODE_NIC_I(SEL_O_MASTER_NIC),
+		.TGA_NODE_NIC_I(TGA_O_MASTER_NIC),
+		.TGC_NODE_NIC_I(TGC_O_MASTER_NIC),
 		.DAT_NODE_NIC_O(DAT_I_MASTER_NIC),
 		.RTY_NODE_NIC_O(RTY_I_MASTER_NIC),
 		.ERR_NODE_NIC_O(ERR_I_MASTER_NIC),
@@ -216,6 +230,8 @@ module testbench_master_nic_nic_slave
 		.ADR_NIC_NODE_O(ADR_I_SLAVE_NIC),
 		.DAT_NIC_NODE_O(DAT_I_SLAVE_NIC),
 		.SEL_NIC_NODE_O(SEL_I_SLAVE_NIC),
+		.TGA_NIC_NODE_O(TGA_I_SLAVE_NIC),
+		.TGC_NIC_NODE_O(TGC_I_SLAVE_NIC),
 		.CTI_NIC_NODE_O(CTI_I_SLAVE_NIC),
 		//NODE(MASTER) => NIC(SLAVE)
 		.CYC_NODE_NIC_I(CYC_NODE_NIC_I),
@@ -225,6 +241,8 @@ module testbench_master_nic_nic_slave
 		.DAT_NODE_NIC_I(DAT_NODE_NIC_I),
 		.ADR_NODE_NIC_I(ADR_NODE_NIC_I),
 		.SEL_NODE_NIC_I(SEL_NODE_NIC_I),
+		.TGA_NODE_NIC_I(TGA_NODE_NIC_I),
+		.TGC_NODE_NIC_I(TGC_NODE_NIC_I),
 		.DAT_NODE_NIC_O(DAT_NODE_NIC_O),
 		.RTY_NODE_NIC_O(RTY_NODE_NIC_O),
 		.ERR_NODE_NIC_O(ERR_NODE_NIC_O),
@@ -257,6 +275,8 @@ module testbench_master_nic_nic_slave
 		.ADR_I(ADR_I_SLAVE_NIC),
 		.DAT_I(DAT_I_SLAVE_NIC),
 		.SEL_I(SEL_I_SLAVE_NIC),
+		.TGA_I(TGA_I_SLAVE_NIC),
+		.TGC_I(TGC_I_SLAVE_NIC),
 		.CTI_I(CTI_I_SLAVE_NIC),
 		.DAT_O(DAT_O_SLAVE_NIC),
 		.ACK_O(ACK_O_SLAVE_NIC),
@@ -284,10 +304,12 @@ module testbench_master_nic_nic_slave
 		DAT_NODE_NIC_I = 0;
 		ADR_NODE_NIC_I = 0;
 		SEL_NODE_NIC_I = 0;
+		TGA_NODE_NIC_I = 0;
+		TGC_NODE_NIC_I = 0;
 		repeat(2) @(posedge clk);
 		rst = 0;
 		@(posedge clk);
-		repeat(100) @(posedge clk);
+		repeat(40) @(posedge clk);
 		$finish;
 	end//initial
 

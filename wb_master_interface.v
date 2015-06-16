@@ -24,6 +24,8 @@ module wb_master_interface
 	input				[`BUS_ADDRESS_WIDTH-1:0]					address_i,//if r_bus_arbitration_i is high this signal contains the address that must be trasmitted on the WISHBONE
 	input				[`BUS_DATA_WIDTH-1:0]						data_i,//like above, but the signal contains the data
 	input				[(`BUS_DATA_WIDTH/`GRANULARITY)-1:0]	sel_i,//like above, but contains the SEL_O signal
+	input				[`BUS_TGA_WIDTH-1:0]							tga_i,//like above, for TGA_O
+	input				[`BUS_TGC_WIDTH-1:0]							tgc_i,//like above, for TGC_O
 	input																	transaction_type_i,//like above, but this signal contains the WE_O signal of WISHBONE
 	input				[N_BITS_BURST_LENGHT-1:0]					burst_lenght_i,//number of WISHBONE 'cycle' to transmit the message
 	output	reg														next_data_o,//if high, we require at the queue to load the next chunk of the message on data_i address_i
@@ -55,6 +57,8 @@ module wb_master_interface
 	output			[`BUS_ADDRESS_WIDTH-1:0]					ADR_O,
 	output			[`BUS_DATA_WIDTH-1:0]						DAT_O,
 	output			[(`BUS_DATA_WIDTH/`GRANULARITY)-1:0]	SEL_O,
+	output			[`BUS_TGA_WIDTH-1:0]							TGA_O,
+	output			[`BUS_TGC_WIDTH-1:0]							TGC_O,
 	output			[2:0]												CTI_O,
 	output	reg														ACK_O,//this isn't a signal of the master, it is used in the pipeline implementation of this NiC when this module reply for the wb_slave_interface
 
@@ -62,10 +66,12 @@ module wb_master_interface
 	input																	gnt_wb_i
 	);
 
-	//bypass of the signal address_i, data_i, sel_i and transaction_type
+	//bypass of the signal address_i, data_i, sel_i and transaction_type, tga_i, tgc_i
 	assign DAT_O	=	data_i;
 	assign ADR_O	=	address_i;
 	assign SEL_O	=	sel_i;
+	assign TGA_O	=	tga_i;
+	assign TGC_O	=	tgc_i;
 	assign WE_O		=	transaction_type_i;
 	//force CTI on classic cycle
 	assign CTI_O	=	`CTI_CLASSIC_CYCLE;

@@ -21,6 +21,8 @@ module message_buffer
 	input			[`BUS_ADDRESS_WIDTH-1:0]					ADR_I,
 	input			[`BUS_DATA_WIDTH-1:0]						DAT_I,
 	input			[`BUS_SEL_WIDTH-1:0]							SEL_I,
+	input			[`BUS_TGA_WIDTH-1:0]							TGA_I,
+	input			[`BUS_TGC_WIDTH-1:0]							TGC_I,
 	input																WE_I,
 	input																reply_for_wb_master_interface_i,//if high, the stored packet is a reply for the wb_master_interface
 	input																is_valid_i,//if high the signal above are valid
@@ -35,6 +37,8 @@ module message_buffer
 
 	//buffer
 	reg	[`BUS_ADDRESS_WIDTH-1:0]	address_buffer_r;
+	reg	[`BUS_TGA_WIDTH-1:0]			tga_r;
+	reg	[`BUS_TGC_WIDTH-1:0]			tgc_r;
 	reg	[`BUS_DATA_WIDTH-1:0]		data_buffer_r[`MAX_BURST_LENGHT-1:0];
 	reg	[`BUS_SEL_WIDTH-1:0]			sel_r[`MAX_BURST_LENGHT-1:0];
 	reg	[N_BITS_BURST_LENGHT:0]		n_of_stored_chunk_r;
@@ -68,6 +72,8 @@ module message_buffer
 			if(is_valid_i) begin
 				if(n_of_stored_chunk_r==0) begin
 					address_buffer_r <= ADR_I;
+					tga_r <= TGA_I;
+					tgc_r <= TGC_I;
 				end
 				data_buffer_r[n_of_stored_chunk_r] <= DAT_I;
 				sel_r[n_of_stored_chunk_r] <= SEL_I;
@@ -79,7 +85,7 @@ module message_buffer
 	reg r_msg2pkt;
 	always @(*) begin
 		r_msg2pkt = 0;
-		if( ( n_of_stored_chunk_r==1 && address_buffer_r[`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT && !read_request(data_i[`CMD_BITS_HEAD_FLIT]) && !reply_for_wb_master_interface_i ) || n_of_stored_chunk_r==`MAX_BURST_LENGHT) begin//if in the first message there is a head_tail flit
+		if( ( n_of_stored_chunk_r==1 && data_buffer_r[0][`FLIT_TYPE_BITS]==`HEAD_TAIL_FLIT && WE_I && !reply_for_wb_master_interface_i ) || n_of_stored_chunk_r==`MAX_BURST_LENGHT) begin//if in the first message there is a head_tail flit
 			r_msg2pkt = 1;
 		end//if
 	end//always
@@ -110,6 +116,8 @@ module message_buffer
 		.address_i(address_buffer_r),
 		.data_i(data_i),
 		.sel_i(sel_i),
+		.tga_i(tga_r),
+		.tgc_i(tgc_r),
 		.WE_I(WE_I),
 		.reply_for_wb_master_interface_i(reply_for_wb_master_interface_i),
 		.r_msg2pkt_i(r_msg2pkt),
