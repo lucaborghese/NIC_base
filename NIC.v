@@ -91,14 +91,18 @@ module NIC
 	wire	[`BUS_ADDRESS_WIDTH-1:0]	adr_o_from_noc2wb;
 	wire	[`BUS_DATA_WIDTH-1:0]		dat_o_from_noc2wb;
 	wire	[`BUS_SEL_WIDTH-1:0]			sel_o_from_noc2wb;
+	wire	[`BUS_TGA_WIDTH-1:0]			tga_o_from_noc2wb;
+	wire	[`BUS_TGC_WIDTH-1:0]			tgc_o_from_noc2wb;
 	wire										ack_o_from_noc2wb;
 	assign WE_NIC_NODE_O = we_o_from_noc2wb;
 	assign ADR_NIC_NODE_O = adr_o_from_noc2wb;
 	assign DAT_NIC_NODE_O = dat_o_from_noc2wb;
 	assign SEL_NIC_NODE_O = sel_o_from_noc2wb;
+	assign TGA_NIC_NODE_O = tga_o_from_noc2wb;
+	assign TGC_NIC_NODE_O = tgc_o_from_noc2wb;
 	assign DAT_NODE_NIC_O = dat_o_from_noc2wb;
 
-	//dat_i, adr_i, sel_i and ack_i for wb2noc and ack_o from wb2noc
+	//dat_i, adr_i, sel_i, tga_i, tgc_i and ack_i for wb2noc and ack_o from wb2noc
 	wire ack_o_from_wb2noc;
 
 	wire ack_i_for_wb2noc;
@@ -112,6 +116,12 @@ module NIC
 
 	wire [`BUS_SEL_WIDTH-1:0] sel_i_for_wb2noc;
 	assign sel_i_for_wb2noc = (ACK_NIC_NODE_I) ? {`BUS_SEL_WIDTH{1'b1}} : SEL_NODE_NIC_I;
+
+	wire [`BUS_TGA_WIDTH-1:0] tga_i_for_wb2noc;
+	assign tga_i_for_wb2noc = (ACK_NIC_NODE_I) ? tga_o_from_noc2wb : TGA_NODE_NIC_I;
+
+	wire [`BUS_TGC_WIDTH-1:0] tgc_i_for_wb2noc;
+	assign tgc_i_for_wb2noc = (ACK_NIC_NODE_I) ? tgc_o_from_noc2wb : TGC_NODE_NIC_I;
 
 	//ACK_NODE_NIC_O computation
 	assign ACK_NODE_NIC_O = ack_o_from_wb2noc || ack_o_from_noc2wb;
@@ -171,8 +181,8 @@ module NIC
 		.DAT_I(dat_i_for_wb2noc),
 		.ADR_I(adr_i_for_wb2noc),
 		.SEL_I(sel_i_for_wb2noc),
-		.TGA_I(TGA_NODE_NIC_I),
-		.TGC_I(TGC_NODE_NIC_I),
+		.TGA_I(tga_i_for_wb2noc),
+		.TGC_I(tgc_i_for_wb2noc),
 		.ACK_I(ack_i_for_wb2noc),
 		.RTY_O(RTY_NODE_NIC_O),
 		.ERR_O(ERR_NODE_NIC_O),
@@ -216,8 +226,8 @@ module NIC
 		.ADR_O(adr_o_from_noc2wb),
 		.DAT_O(dat_o_from_noc2wb),
 		.SEL_O(sel_o_from_noc2wb),
-		.TGA_O(TGA_NIC_NODE_O),
-		.TGC_O(TGC_NIC_NODE_O),
+		.TGA_O(tga_o_from_noc2wb),
+		.TGC_O(tgc_o_from_noc2wb),
 		.CTI_O(CTI_NIC_NODE_O),
 		.ACK_O(ack_o_from_noc2wb),
 		.gnt_wb_i(gnt_wb_i)
