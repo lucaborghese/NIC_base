@@ -59,7 +59,7 @@ module flits_buffer
 	endgenerate
 
 	//head_pointer_o
-	assign head_pointer_o = head_pointer_r;
+//	assign head_pointer_o = head_pointer_r;
 
 	//FSM
 	//input:	is_valid_i, flit_type, g_pkt_to_msg_i

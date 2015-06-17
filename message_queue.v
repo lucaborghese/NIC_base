@@ -10,7 +10,7 @@
 
 module message_queue
 	#(
-	parameter	N_BITS_POINTER				=	3,
+	parameter	N_BITS_POINTER				=	3,//clog2(`QUEUE_WIDTH)
 	parameter	N_BITS_BURST_LENGHT		=	7
 	)
 	(

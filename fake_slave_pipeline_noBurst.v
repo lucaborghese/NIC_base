@@ -169,7 +169,7 @@ module fake_slave_pipeline_noBurst
 	//tolgo il gnt
 	always @(negedge CYC_I) begin
 		gnt_wb_o <= 0;
-		if(address_r[`CMD_BITS_HEAD_FLIT]==0) begin
+		if(tgc_r==0) begin
 			$display ("[FAKE_WB_SLAVE] %g Received address %h and data %h from source %d for %d with command %b",$time,address_r,data_r,tga_r,address_r[`DEST_BITS_HEAD_FLIT],tgc_r);
 		end else begin
 			$display ("[FAKE_WB_SLAVE] %g Received read request %h from %d to %d with command %b",$time,address_r,tga_r,address_r[`DEST_BITS_HEAD_FLIT],tgc_r);

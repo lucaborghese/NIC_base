@@ -38,7 +38,7 @@ module input_port
 	genvar i;
 
 	//input signal for each flits_buffer(virtual channel)
-	wire [`FLIT_WIDTH-1:0] in_link_i_for_flits_buffer[N_TOT_OF_VC-1:0];
+	wire [`FLIT_WIDTH-1:0] in_link_for_flits_buffer[N_TOT_OF_VC-1:0];
 	wire [N_TOT_OF_VC-1:0] is_valid_for_flits_buffer;
 	wire [N_TOT_OF_VC-1:0] g_pkt_to_msg_for_flits_buffer;
 
@@ -59,7 +59,7 @@ module input_port
 				.rst(rst),
 
 				//router side
-				.in_link_i(in_link_i_for_flits_buffer[i]),
+				.in_link_i(in_link_for_flits_buffer[i]),
 				.is_valid_i(is_valid_for_flits_buffer[i]),
 				.credit_signal_o(credit_signal_o[i]),
 				.free_signal_o(free_signal_o[i]),
@@ -71,10 +71,10 @@ module input_port
 		end//for
 	endgenerate
 
-	//in_link_i_for_flits_buffer computation
+	//in_link_for_flits_buffer computation
 	generate
-		for( i=0 ; i<N_TOT_OF_VC ; i=i+1 ) begin : in_link_i_for_flits_buffer_computation
-			assign in_link_i_for_flits_buffer[i] = in_link_i;
+		for( i=0 ; i<N_TOT_OF_VC ; i=i+1 ) begin : in_link_for_flits_buffer_computation
+			assign in_link_for_flits_buffer[i] = in_link_i;
 		end
 	endgenerate
 
