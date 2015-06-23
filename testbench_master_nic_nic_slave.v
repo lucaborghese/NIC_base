@@ -21,9 +21,9 @@ module testbench_master_nic_nic_slave
 	parameter HOW_MANY_MORE_SMALL					=	10,//greater this number greater the probability to have more small/big write than big/small
 	parameter N_BODY_FLIT							=	`MAX_PACKET_LENGHT-2,
 	//parameter for fake_slave
-	parameter n_wait_cycle_grant					=	100,
-	parameter n_wait_cycle_for_read_pipeline	=	2,
-	parameter n_wait_cycle_for_write_pipeline	=	2,
+	parameter n_wait_cycle_grant					=	0,
+	parameter n_wait_cycle_for_read_pipeline	=	0,
+	parameter n_wait_cycle_for_write_pipeline	=	0,
 	parameter insert_stall							=	0,//1: insert random stall, 0: no stall
 	parameter n_wait_cycle_between_read_ack	=	0,
 	parameter n_wait_cycle_between_write_ack	=	0
@@ -86,6 +86,7 @@ module testbench_master_nic_nic_slave
 	//signals from fake_slave to nic_slave
 	//arbiter
 	wire										gnt_wb_o_slave_nic;
+	wire										STALL_O_FROM_SLAVE;
 	//WISHBONE
 	wire										CYC_I_SLAVE_NIC;
 	wire										STB_I_SLAVE_NIC;
@@ -101,6 +102,8 @@ module testbench_master_nic_nic_slave
 	wire										RTY_O_SLAVE_NIC;
 	wire										ERR_O_SLAVE_NIC;
 	wire										STALL_O_SLAVE_NIC;
+
+	assign STALL_O_SLAVE_NIC = (gnt_wb_o_slave_nic) ? STALL_O_FROM_SLAVE : 1;
 
 	//signals for nic_slave(there isn't a master attached so fixed signals)
 	reg										CYC_NODE_NIC_I;
@@ -282,7 +285,7 @@ module testbench_master_nic_nic_slave
 		.ACK_O(ACK_O_SLAVE_NIC),
 		.RTY_O(RTY_O_SLAVE_NIC),
 		.ERR_O(ERR_O_SLAVE_NIC),
-		.STALL_O(STALL_O_SLAVE_NIC)
+		.STALL_O(STALL_O_FROM_SLAVE)
 		);
 
 	initial begin

@@ -137,15 +137,14 @@ module wb_master_interface
 	//output wb_slave_interface side:	performing_read_o
 	//output WISHBONE side:					CYC_O, STB_O, ACK_O
 	//output internal signal:				rst_n_of_ack, increment_n_of_ack, rst_n_of_chunk, increment_n_of_chunk
-	localparam	IDLE 								=	4'b0000;
-	localparam	REQUEST_WB_BUS					=	4'b0001;
-	localparam	READ_CYCLE						=	4'b0010;
-	localparam	READ_CYCLE_ACK_WAIT			=	4'b0011;
-	localparam	READ_CYCLE_END					=	4'b0100;
-	localparam	WRITE_CYCLE						=	4'b0101;
-	localparam	WRITE_CYCLE_ACK_WAIT			=	4'b0110;
-	localparam	WRITE_CYCLE_END				=	4'b0111;//for now equal to READ_CYCLE_END, these two state can be collapsed(for now)
-	localparam	REPLY_PENDING_TRANSACTION	=	4'b1000;
+	localparam	IDLE 								=	4'b000;
+	localparam	READ_CYCLE						=	4'b001;
+	localparam	READ_CYCLE_ACK_WAIT			=	4'b010;
+	localparam	READ_CYCLE_END					=	4'b011;
+	localparam	WRITE_CYCLE						=	4'b100;
+	localparam	WRITE_CYCLE_ACK_WAIT			=	4'b101;
+	localparam	WRITE_CYCLE_END				=	4'b110;//for now equal to READ_CYCLE_END, these two state can be collapsed(for now)
+	localparam	REPLY_PENDING_TRANSACTION	=	4'b111;
 	reg	[3:0]	state;
 	reg	[3:0]	next_state;
 
@@ -156,70 +155,62 @@ module wb_master_interface
 				next_data_o = 0;
 				message_transmitted_o = 0;
 				retry_o = 0;
+				CYC_O = 0;
 				STB_O = 0;
+				query_o = 0;
 				rst_n_of_ack = 1;
 				increment_n_of_ack = 0;
 				rst_n_of_chunk = 1;
 				increment_n_of_chunk = 0;
 				pending_transaction_executed_o = 0;
 				ACK_O = 0;
+				next_state = IDLE;
 //				performing_read_o = 0;
 				if(r_bus_arbitration_i) begin
 					query_o = 1;
 					if(is_a_pending_transaction_i) begin
 						CYC_O = 0;
 						next_state = REPLY_PENDING_TRANSACTION;
+						//da ripensare
+						ACK_O = 1;
+						increment_n_of_chunk = 1;
+						next_data_o = 1;
+						rst_n_of_chunk = 0;
+						
 					end else begin
 						CYC_O = 1;
-						next_state = REQUEST_WB_BUS;
-					end
-				end else begin
-					query_o = 0;
-					CYC_O = 0;
-					next_state = IDLE;
-				end//else if(r_bus_arbitration)
+						STB_O = 1;
+						if(!STALL_I) begin
+							increment_n_of_chunk = 1;
+							if(transaction_type_i) begin//WRITE transaction
+//								performing_read_o = 0;
+								if(burst_lenght_i>1) begin
+									next_state = WRITE_CYCLE;
+									next_data_o = 1;
+								end else begin
+									next_state = WRITE_CYCLE_ACK_WAIT;
+									next_data_o = 0;
+								end//else if(burst_lenght)
+							end else begin//READ transaction
+//								performing_read_o = 1;
+								if(burst_lenght_i>1) begin
+									next_state = READ_CYCLE;
+									next_data_o = 1;
+								end else begin
+									next_state = READ_CYCLE_ACK_WAIT;
+									next_data_o = 0;
+								end//else if(burst_lenght)
+							end//else if(transaction_type)
+						end else begin//if(!STALL_I)
+							if(transaction_type_i) begin
+								next_state = WRITE_CYCLE;
+							end else begin
+								next_state = READ_CYCLE;
+							end
+						end//else if(!STALL_I)
+					end//else if(is_a_pending_transaction_i)
+				end//if(r_bus_arbitration)
 			end//IDLE
-
-			REQUEST_WB_BUS: begin
-				CYC_O = 1;
-				rst_n_of_ack = 0;
-				increment_n_of_ack = 0;
-				rst_n_of_chunk = 0;
-				message_transmitted_o = 0;
-				retry_o = 0;
-				query_o = 0;
-				pending_transaction_executed_o = 0;
-				ACK_O = 0;
-				if(!STALL_I && gnt_wb_i) begin//i have to start a transfer on the bus
-					STB_O = 1;
-					increment_n_of_chunk = 1;
-					if(transaction_type_i) begin//WRITE transaction
-//						performing_read_o = 0;
-						if(burst_lenght_i>1) begin
-							next_state = WRITE_CYCLE;
-							next_data_o = 1;
-						end else begin
-							next_state = WRITE_CYCLE_ACK_WAIT;
-							next_data_o = 0;
-						end//else if(burst_lenght)
-					end else begin//READ transaction
-//						performing_read_o = 1;
-						if(burst_lenght_i>1) begin
-							next_state = READ_CYCLE;
-							next_data_o = 1;
-						end else begin
-							next_state = READ_CYCLE_ACK_WAIT;
-							next_data_o = 0;
-						end//else if(burst_lenght)
-					end//else if(transaction_type)
-				end else begin//i do not have to start a bus cycle
-					next_state = REQUEST_WB_BUS;
-					STB_O = 0;
-					increment_n_of_chunk = 0;
-					next_data_o = 0;
-//					performing_read_o = 0;
-				end//else if
-			end//REQUEST_BUS
 
 			READ_CYCLE: begin
 //				performing_read_o = 1;
@@ -442,9 +433,9 @@ module wb_master_interface
 		query_recipient_o = 0;
 		transaction_type_o = 0;
 		if(query_o) begin
-			query_sender_o = address_i[`SRC_BITS_HEAD_FLIT];
+			query_sender_o = tga_i;
 			query_recipient_o = address_i[`DEST_BITS_HEAD_FLIT];
-			transaction_type_o = address_i[`CMD_BITS_HEAD_FLIT];
+			transaction_type_o = tgc_i;
 		end//if(state==IDLE && r_bus_arbitration_i)
 	end//always
 

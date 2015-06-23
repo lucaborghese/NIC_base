@@ -10,9 +10,9 @@
 
 module fake_slave_pipeline_noBurst
 	#(
-	parameter n_wait_cycle_grant					=	1,
-	parameter n_wait_cycle_for_read_pipeline	=	2,
-	parameter n_wait_cycle_for_write_pipeline	=	2,
+	parameter n_wait_cycle_grant					=	0,
+	parameter n_wait_cycle_for_read_pipeline	=	0,
+	parameter n_wait_cycle_for_write_pipeline	=	0,
 	parameter insert_stall							=	0,//1: insert random stall, 0: no stall
 	parameter n_wait_cycle_between_read_ack	=	0,
 	parameter n_wait_cycle_between_write_ack	=	0,
@@ -93,12 +93,12 @@ module fake_slave_pipeline_noBurst
 		waiting_grant = 1;
 		repeat(n_wait_cycle_grant+1) @(posedge clk);
 		waiting_grant = 0;
-		gnt_wb_o = 1;
+		#1 gnt_wb_o = 1;
 		waiting_pipeline = 1;
 		if(WE_I) begin//write transaction
-			repeat(n_wait_cycle_for_write_pipeline+1) @(posedge clk);
+			repeat(n_wait_cycle_for_write_pipeline) @(posedge clk);
 		end else begin//read transaction
-			repeat(n_wait_cycle_for_read_pipeline+1) @(posedge clk);
+			repeat(n_wait_cycle_for_read_pipeline) @(posedge clk);
 		end//else if(WE_I)
 		waiting_pipeline = 0;
 	end//always
@@ -138,7 +138,7 @@ module fake_slave_pipeline_noBurst
 	//counting number of reply that we have to generate
 	always @(posedge clk) begin
 		if(CYC_I) begin
-			if(STB_I && !STALL_O) begin
+			if(STB_I && !STALL_O && gnt_wb_o) begin
 				if(count_n_of_reply==0) begin//storing the address only if it is the first chunk
 					address_r = ADR_I;
 					tga_r = TGA_I;

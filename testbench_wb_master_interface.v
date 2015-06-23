@@ -12,7 +12,7 @@
 
 module testbench_wb_master_interface
 	#(
-	parameter	N_BITS_BURST_LENGHT	=	clog2(`MAX_BURST_LENGHT)
+	parameter	N_BITS_BURST_LENGHT	=	clog2(`MAX_BURST_LENGHT+1)
 	)
 	();
 
@@ -28,6 +28,8 @@ module testbench_wb_master_interface
 	//input queue side
 	reg														r_bus_arbitration_i;
 	reg	[`BUS_ADDRESS_WIDTH-1:0]					address_i;
+	reg	[`BUS_TGA_WIDTH-1:0]							tga_i;
+	reg	[`BUS_TGC_WIDTH-1:0]							tgc_i;
 	reg	[`BUS_DATA_WIDTH-1:0]						data_i;
 	reg	[(`BUS_DATA_WIDTH/`GRANULARITY)-1:0]	sel_i;
 	reg														transaction_type_i;
@@ -65,6 +67,10 @@ module testbench_wb_master_interface
 	wire	[2:0]												CTI_O;
 	wire														ACK_O;
 
+	//STALL_O from fake_slave
+	wire STALL_O;
+	assign STALL_I = (gnt_wb) ? STALL_O : 1'b1;
+
 	//I/O arbiter
 	wire														gnt_wb;
 
@@ -80,6 +86,8 @@ module testbench_wb_master_interface
 		//input queue side
 		.r_bus_arbitration_i(r_bus_arbitration_i),
 		.address_i(address_i),
+		.tga_i(tga_i),
+		.tgc_i(tgc_i),
 		.data_i(data_i),
 		.sel_i(sel_i),
 		.transaction_type_i(transaction_type_i),
@@ -97,7 +105,7 @@ module testbench_wb_master_interface
 		.query_recipient_o(query_recipient_o),
 		.transaction_type_o(transaction_type_o),
 		//input WISHBONE bus
-		.DAT_I(DAT_I),
+//		.DAT_I(DAT_I),
 		.ACK_I(ACK_I),
 		.RTY_I(RTY_I),
 		.ERR_I(ERR_I),
@@ -134,18 +142,20 @@ module testbench_wb_master_interface
 		.ACK_O(ACK_I),
 		.RTY_O(RTY_I),
 		.ERR_O(ERR_I),
-		.STALL_O(STALL_I)
+		.STALL_O(STALL_O)
 		);
 
 	initial begin
 		clk = 0;
 		rst = 1;
 		address_i = $random;
+		tga_i = $random;
+		tgc_i = $random;
 		data_i = $random;
-		sel_i = 1;
-		is_a_pending_transaction_i = 1;
+		sel_i = ~0;
+		is_a_pending_transaction_i = 0;
 		r_bus_arbitration_i = 0;
-		transaction_type_i = 0;
+		transaction_type_i = 1;
 		burst_lenght_i = 0;
 		repeat(2) @(posedge clk);
 		#1 rst = 0;
