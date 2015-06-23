@@ -21,7 +21,7 @@ module message_queue
 	input				[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	in_link_i,//data link from the input buffer
 //	input				[`MAX_PACKET_LENGHT-1:0]					in_sel_i,//number of valid information in the in_link, if the i-th bit is high the i-th flit is valid
 	input																	r_pkt_to_msg_i,//request of storage from the input buffer
-	output	reg														g_pkt_to_msg_o,//high if the queue can serve the request
+	output																stall_pkt_to_msg_o,//high if the queue can serve the request
 
 	//interface side wb_master_interface
 	output																r_bus_arbitration_o,//if high we require the arbitration over the bus
@@ -57,24 +57,18 @@ module message_queue
 	assign r_bus_arbitration_o = (valid_bit_r[head_pointer_r]!=0) ? 1 : 0;
 
 	//computation of g_packet_to_message
-	always @(posedge clk) begin
-		if(rst) begin
-			g_pkt_to_msg_o <= 0;
-		end else begin
-			if(free_space_available && r_pkt_to_msg_i && !g_pkt_to_msg_o) begin
-				g_pkt_to_msg_o <= 1;
-			end else begin
-				g_pkt_to_msg_o <= 0;
-			end
-		end//else if(rst)
-	end//always
+	assign stall_pkt_to_msg_o = !free_space_available;
+
+	//store_new_message, if high the information in in_link are saved
+	wire store_new_message;
+	assign store_new_message = r_pkt_to_msg_i && !stall_pkt_to_msg_o;
 
 	//storing a new message(valid_bit_r is updated in another always statement!!!)
 	always @(posedge clk) begin
 		if(rst) begin
 			tail_pointer_r <= 0;
 		end else begin
-			if(g_pkt_to_msg_o) begin
+			if(store_new_message) begin
 				head_queue_r[tail_pointer_r] <= in_link_i[`FLIT_WIDTH-1:0];//storing head/head_tail flit
 				data_queue_r[tail_pointer_r] <= in_link_i[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0];//storing data flit
 //				sel_r[tail_pointer_r] <= in_sel_i[`MAX_PACKET_LENGHT-1:0];
@@ -111,7 +105,7 @@ module message_queue
 		if(rst) begin
 			valid_bit_r <= 0;
 		end else begin
-			case({ g_pkt_to_msg_o , message_transmitted_i })
+			case({ store_new_message , message_transmitted_i })
 				2'b01: begin//a message sent and no new arrive
 					valid_bit_r[head_pointer_r] <= 0;
 				end//2'b01

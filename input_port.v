@@ -25,7 +25,7 @@ module input_port
 	output		[N_TOT_OF_VC-1:0]								free_signal_o,//high if buffer_r change state from busy to idle
 
 	//queue side
-	input																g_pkt_to_msg_i,//grant signal of the next stage of the pipeline
+	input																stall_pkt_to_msg_i,//grant signal of the next stage of the pipeline
 	output															r_pkt_to_msg_o,//request signal for the next stage of the pipeline
 	output		[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_o//link used to transfer the packet in the next stage of the pipeline
 																					//the first flit(starting from bit 0) is the head/head_tail,
@@ -40,7 +40,7 @@ module input_port
 	//input signal for each flits_buffer(virtual channel)
 	wire [`FLIT_WIDTH-1:0] in_link_for_flits_buffer[N_TOT_OF_VC-1:0];
 	wire [N_TOT_OF_VC-1:0] is_valid_for_flits_buffer;
-	wire [N_TOT_OF_VC-1:0] g_pkt_to_msg_for_flits_buffer;
+	wire [N_TOT_OF_VC-1:0] stall_pkt_to_msg_for_flits_buffer;
 
 	//collection of output signal from each flits_buffer
 	wire [N_TOT_OF_VC-1:0] r_pkt_to_msg_from_flits_buffer;
@@ -64,7 +64,7 @@ module input_port
 				.credit_signal_o(credit_signal_o[i]),
 				.free_signal_o(free_signal_o[i]),
 				//queue side
-				.g_pkt_to_msg_i(g_pkt_to_msg_for_flits_buffer[i]),
+				.stall_pkt_to_msg_i(stall_pkt_to_msg_for_flits_buffer[i]),
 				.r_pkt_to_msg_o(r_pkt_to_msg_from_flits_buffer[i]),
 				.out_link_o(out_link_from_flits_buffer[i])
 				);
@@ -112,16 +112,16 @@ module input_port
 	end//always
 
 	//computation of r_pkt_to_msg_o
-	assign r_pkt_to_msg_o = r_pkt_to_msg_from_flits_buffer[applicant_pkt2msg_id_r];
+	assign r_pkt_to_msg_o = r_pkt_to_msg_from_flits_buffer[next_applicant_pkt2msg_id];
 
-	//computation of g_pkt_to_msg_for_flits_buffer
+	//computation of stall_pkt_to_msg_for_flits_buffer
 	generate
-		for( i=0 ; i<N_TOT_OF_VC ; i=i+1 ) begin : g_pkt_to_msg_for_flits_buffer_computation
-			assign g_pkt_to_msg_for_flits_buffer[i] = (applicant_pkt2msg_id_r==i) ? g_pkt_to_msg_i : 1'b0;
+		for( i=0 ; i<N_TOT_OF_VC ; i=i+1 ) begin : stall_pkt_to_msg_for_flits_buffer_computation
+			assign stall_pkt_to_msg_for_flits_buffer[i] = (next_applicant_pkt2msg_id==i) ? stall_pkt_to_msg_i : 1'b1;
 		end//for
 	endgenerate
 
 	//computation of out_link_o
-	assign out_link_o = out_link_from_flits_buffer[applicant_pkt2msg_id_r];
+	assign out_link_o = out_link_from_flits_buffer[next_applicant_pkt2msg_id];
 
 endmodule

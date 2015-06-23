@@ -59,7 +59,7 @@ module noc2wb
 	);
 
 	//signals flits_buffer - message_queue
-	wire														g_pkt_to_msg_mq_ip;
+	wire														stall_pkt_to_msg_mq_ip;
 	wire														r_pkt_to_msg_ip_mq;
 	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_ip_mq;
 //	wire	[N_BITS_POINTER_FLITS_BUFFER-1:0]		head_pointer_ip_mq;
@@ -95,7 +95,7 @@ module noc2wb
 		.credit_signal_o(credit_signal_o),
 		.free_signal_o(free_signal_o),
 		//queue side
-		.g_pkt_to_msg_i(g_pkt_to_msg_mq_ip),
+		.stall_pkt_to_msg_i(stall_pkt_to_msg_mq_ip),
 		.r_pkt_to_msg_o(r_pkt_to_msg_ip_mq),
 		.out_link_o(out_link_ip_mq)
 //		.head_pointer_o(head_pointer_ip_mq),
@@ -116,7 +116,7 @@ module noc2wb
 		.in_link_i(out_link_ip_mq),
 //		.in_sel_i(out_sel_ip_mq),
 		.r_pkt_to_msg_i(r_pkt_to_msg_ip_mq),
-		.g_pkt_to_msg_o(g_pkt_to_msg_mq_ip),
+		.stall_pkt_to_msg_o(stall_pkt_to_msg_mq_ip),
 		//wb_master_interface side
 		.r_bus_arbitration_o(r_bus_arbitration_mq_wm),
 		.address_o(address_mq_wm),

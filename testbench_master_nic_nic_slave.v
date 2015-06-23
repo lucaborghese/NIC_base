@@ -17,11 +17,11 @@ module testbench_master_nic_nic_slave
 	//parameter for fake_master
 	parameter MORE_READ								=	0,//0 more write, 1 more read(see also HOW_MANY_MORE_READ/WRITE)
 	parameter MORE_SMALL_WRITE						=	0,//0 more big write, 1 more small write(see also HOW_MANY_MORE_SMALL)
-	parameter HOW_MANY_MORE_READ					=	0,//greater this number greater the probability to have more read/write than write/read
-	parameter HOW_MANY_MORE_SMALL					=	0,//greater this number greater the probability to have more small/big write than big/small
+	parameter HOW_MANY_MORE_READ					=	10,//greater this number greater the probability to have more read/write than write/read
+	parameter HOW_MANY_MORE_SMALL					=	10,//greater this number greater the probability to have more small/big write than big/small
 	parameter N_BODY_FLIT							=	`MAX_PACKET_LENGHT-2,
 	//parameter for fake_slave
-	parameter n_wait_cycle_grant					=	1,
+	parameter n_wait_cycle_grant					=	100,
 	parameter n_wait_cycle_for_read_pipeline	=	2,
 	parameter n_wait_cycle_for_write_pipeline	=	2,
 	parameter insert_stall							=	0,//1: insert random stall, 0: no stall
@@ -309,7 +309,7 @@ module testbench_master_nic_nic_slave
 		repeat(2) @(posedge clk);
 		rst = 0;
 		@(posedge clk);
-		repeat(40) @(posedge clk);
+		repeat(100) @(posedge clk);
 		$finish;
 	end//initial
 

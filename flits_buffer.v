@@ -25,8 +25,8 @@ module flits_buffer
 	output	reg													free_signal_o,//high if buffer_r change state from busy to idle
 
 	//queue side
-	input																g_pkt_to_msg_i,//grant signal of the next stage of the pipeline
-	output															r_pkt_to_msg_o,//request signal for the next stage of the pipeline
+	input																stall_pkt_to_msg_i,//grant signal of the next stage of the pipeline
+	output	reg													r_pkt_to_msg_o,//request signal for the next stage of the pipeline
 	output		[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_o//link used to transfer the packet in the next stage of the pipeline
 																					//the first flit(starting from bit 0) is the head/head_tail,
 																					//the second flit(starting from bit `FLIT_WIDTH) is the first body,
@@ -62,7 +62,7 @@ module flits_buffer
 //	assign head_pointer_o = head_pointer_r;
 
 	//FSM
-	//input:	is_valid_i, flit_type, g_pkt_to_msg_i
+	//input:	is_valid_i, flit_type, stall_pkt_to_msg_i
 	//output: r_pkt_to_msg_o, credit_signal_o, free_signal_o, store, clear_buffer
 	localparam	IDLE							=	3'b001;
 	localparam	RECEIVING_PACKET			=	3'b010;
@@ -78,6 +78,7 @@ module flits_buffer
 		case(state)
 			IDLE: begin
 				clear_buffer = 0;
+				r_pkt_to_msg_o = 0;
 				free_signal_o = 0;
 				if(is_valid_i) begin//NEW FLIT ARRIVE
 					credit_signal_o = 1;
@@ -103,6 +104,7 @@ module flits_buffer
 			RECEIVING_PACKET: begin
 				clear_buffer = 0;
 				free_signal_o = 0;
+				r_pkt_to_msg_o = 0;
 				if(is_valid_i) begin//NEXT FLIT ARRIVE
 					credit_signal_o = 1;
 					store = 1;
@@ -127,7 +129,8 @@ module flits_buffer
 			REQUEST_PACKET2MESSAGE: begin
 				credit_signal_o = 0;
 				store = 0;
-				if(g_pkt_to_msg_i) begin//GRANT RECEIVED FROM THE NEXT STAGE OF THE PIPELINE
+				r_pkt_to_msg_o = 1;
+				if(!stall_pkt_to_msg_i) begin//IF NOT STALL OF THE QUEUE I CAN SUPPOSE THAT THE PACKET HAS BEEN STORED
 					next_state = IDLE;
 					free_signal_o = 1;
 					clear_buffer = 1;
@@ -135,11 +138,12 @@ module flits_buffer
 					next_state = REQUEST_PACKET2MESSAGE;
 					free_signal_o = 0;
 					clear_buffer = 0;
-				end//else if(g_packet_to_message)
+				end//else if(!stall_pkt_to_msg_i)
 			end//REQUEST_PACKET2MESSAGE
 
 			default: begin
 				free_signal_o = 1;
+				r_pkt_to_msg_o = 0;
 				credit_signal_o = 0;
 				store = 0;
 				clear_buffer = 1;
@@ -156,9 +160,6 @@ module flits_buffer
 			state <= next_state;
 		end//else if(rst)
 	end//always
-
-	//computation of r_pkt_to_msg_o depending only on the current state
-	assign r_pkt_to_msg_o = (state==REQUEST_PACKET2MESSAGE) ? 1 : 0;
 	//END FSM
 
 	//head_pointer_r, tail_pointer_r and sel_r update

@@ -23,7 +23,7 @@ module testbench_flits_buffer
 	//input for flits_buffer
 	reg	[`FLIT_WIDTH-1:0]	in_link;
 	reg							is_valid;
-	reg							g_packet_to_message;
+	reg							stall_packet_to_message;
 	
 	//output from flits_buffer
 	wire														credit_signal;
@@ -49,7 +49,7 @@ module testbench_flits_buffer
 		.is_valid_i(is_valid),
 		.credit_signal_o(credit_signal),
 		.free_signal_o(free_signal),
-		.g_pkt_to_msg_i(g_packet_to_message),
+		.stall_pkt_to_msg_i(stall_packet_to_message),
 		.r_pkt_to_msg_o(r_packet_to_message),
 		.out_link_o(out_link)
 //		.head_pointer_o(head_pointer),
@@ -61,7 +61,7 @@ module testbench_flits_buffer
 		rst = 1;
 		in_link = 0;
 		is_valid = 0;
-		g_packet_to_message = 0;
+		stall_packet_to_message = 0;
 		repeat (2) @ (posedge clk);
 		rst = 0;
 		is_valid = 1;
@@ -69,13 +69,7 @@ module testbench_flits_buffer
 		@ (posedge clk);
 		is_valid = 0;
 		@ (posedge clk);
-		@ (posedge clk);
-		@ (posedge clk);
-		g_packet_to_message = 1;
-		@ (posedge clk);
-		g_packet_to_message = 0;
-		@ (posedge clk);
-		@ (posedge clk);
+/*		@ (posedge clk);
 		@ (posedge clk);
 		is_valid = 1;
 		in_link = 64'h00;//head flit
@@ -85,23 +79,20 @@ module testbench_flits_buffer
 		in_link = 64'h21;//second body flit
 		@ (posedge clk);
 		is_valid = 0;//stop di un ciclo
-		@ (posedge clk);
+*/		@ (posedge clk);
 		is_valid = 1;
-		in_link = 64'h31;//third body flit
+		in_link = 64'h30;//third body flit
 		@ (posedge clk);
-/*		in_link = 64'h41;//forth body flit
+		in_link = 64'h41;//forth body flit
 		@ (posedge clk);
 		in_link = 64'h51;//fifth body flit
 		@ (posedge clk);
 		in_link = 64'h61;//sixth body flit
 		@ (posedge clk);
-*/		in_link = 64'h72;//tail flit
+		in_link = 64'h72;//tail flit
 		@ (posedge clk);
 		is_valid = 0;
 		@ (posedge clk);
-		g_packet_to_message = 1;
-		@ (posedge clk);
-		g_packet_to_message = 0;
 		$finish;
 	end//
 

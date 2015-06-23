@@ -7,6 +7,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 `include "NIC-defines.v"
+`include "input_port.v"
 
 module testbench_input_port
 	#(
@@ -30,7 +31,7 @@ module testbench_input_port
 	wire	[N_TOT_OF_VC-1:0]	free_signal_o;
 
 	//queue side
-	reg														g_pkt_to_msg_i;
+	reg														stall_pkt_to_msg_i;
 	wire														r_pkt_to_msg_o;
 	wire	[`MAX_PACKET_LENGHT*`FLIT_WIDTH-1:0]	out_link_o;
 
@@ -51,7 +52,7 @@ module testbench_input_port
 		.credit_signal_o(credit_signal_o),
 		.free_signal_o(free_signal_o),
 		//queue side
-		.g_pkt_to_msg_i(g_pkt_to_msg_i),
+		.stall_pkt_to_msg_i(stall_pkt_to_msg_i),
 		.r_pkt_to_msg_o(r_pkt_to_msg_o),
 		.out_link_o(out_link_o)
 		);
@@ -61,7 +62,7 @@ module testbench_input_port
 		rst = 1;
 		in_link_i = 0;
 		is_valid_i = 0;
-		g_pkt_to_msg_i = 0;
+		stall_pkt_to_msg_i = 1;
 		repeat(2) @(posedge clk);
 		rst = 0;
 		@(posedge clk);
@@ -81,20 +82,20 @@ module testbench_input_port
 		in_link_i = 16'hAAAF;//vn 1 vc 1
 		@(posedge clk);
 		is_valid_i = 0;
-		g_pkt_to_msg_i = 1;
+		stall_pkt_to_msg_i = 0;
 		@(posedge clk);
-		g_pkt_to_msg_i = 0;
-		@(posedge clk);
-		@(posedge clk);
-		@(posedge clk);
-		g_pkt_to_msg_i = 1;
-		@(posedge clk);
-		g_pkt_to_msg_i = 0;
+		stall_pkt_to_msg_i = 1;
 		@(posedge clk);
 		@(posedge clk);
-		g_pkt_to_msg_i = 1;
 		@(posedge clk);
-		g_pkt_to_msg_i = 0;
+		stall_pkt_to_msg_i = 0;
+		@(posedge clk);
+		stall_pkt_to_msg_i = 1;
+		@(posedge clk);
+		@(posedge clk);
+		stall_pkt_to_msg_i = 0;
+		@(posedge clk);
+		stall_pkt_to_msg_i = 1;
 		@(posedge clk);
 		$finish;
 	end//initial
